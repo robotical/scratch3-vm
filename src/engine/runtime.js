@@ -950,11 +950,7 @@ class Runtime extends EventEmitter {
      * @param {string} extensionId - the id of the extension.
      */
     scanForPeripheral (extensionId) {
-        console.warn('scan triggered...');
-        console.warn(extensionId);
-        console.warn(this.peripheralExtensions[extensionId]);
         if (this.peripheralExtensions[extensionId]) {
-            console.warn('extension ' + extensionId + ' scan triggered...');
             this.peripheralExtensions[extensionId].scan();
         } else {
             console.error('Could not find a registered extension ' + extensionId);
