@@ -349,6 +349,17 @@ class Scratch3MartyBlocks {
          * @private
          */
         this._lastTextTranslated = '';
+
+        this.jointID = [];
+        this.jointID["left hip"] = 0;
+        this.jointID["left twist"] = 1;
+        this.jointID["left knee"] = 2;
+        this.jointID["right hip"] = 3;
+        this.jointID["right twist"] = 4;
+        this.jointID["right knee"] = 5;
+        this.jointID["left arm"] = 6;
+        this.jointID["right arm"] = 7;
+        this.jointID["eyes"] = 8;
     }
 
     /**
@@ -372,63 +383,610 @@ class Scratch3MartyBlocks {
             }),
             blockIconURI: blockIconURI,
             showStatusButton: true,
+            /* See https://github.com/LLK/scratch-vm/wiki/Scratch-3.0-Extensions-Specification */
+            /* Note that the above is out-of-date on some members. */
             blocks: [
                 {
-                    opcode: 'getTranslate',
+                    opcode: 'm_hello',
                     text: formatMessage({
-                        id: 'marty.translateBlock',
-                        default: 'martyfy [WORDS] to [LANGUAGE]',
-                        description: 'translate some text to a different language'
+                        id: 'marty.getReadyBlock',
+                        default: 'get ready',
+                        description: 'Get ready'
                     }),
-                    blockType: BlockType.REPORTER,
+                    branchCount: 0,
+                    terminal: false,
+                    blockAllThreads: false,
+                    blockType: BlockType.COMMAND,
+                },
+                {
+                    opcode: 'm_stop',
+                    text: formatMessage({
+                        id: 'marty.stopBlock',
+                        default: 'stop: [STOPTYPE]',
+                        description: 'Stop the Robot'
+                    }),
+                    blockType: BlockType.COMMAND,
                     arguments: {
-                        WORDS: {
+                        STOPTYPE: {
                             type: ArgumentType.STRING,
-                            defaultValue: formatMessage({
-                                id: 'marty.defaultTextToTranslate',
-                                default: 'hello',
-                                description: 'hello: the default text to translate'
-                            })
-                        },
-                        LANGUAGE: {
-                            type: ArgumentType.STRING,
-                            menu: 'languages',
-                            defaultValue: this._randomLanguageCode
+                            menu: 'stopTypes',
+                            defaultValue: 'freeze',
                         }
                     }
                 },
                 {
-                    opcode: 'm_hello',
+                    opcode: 'm_disable_motors',
                     text: formatMessage({
-                        id: 'marty.helloBlock',
-                        default: 'hello',
-                        description: 'Get ready'
+                        id: 'marty.disableBlock',
+                        default: 'turn off motors',
+                        description: 'Turn off Motors'
                     }),
                     blockType: BlockType.COMMAND,
                 },
                 {
-                    opcode: 'getViewerLanguage',
+                    opcode: 'm_enable_motors',
                     text: formatMessage({
-                        id: 'marty.viewerLanguage',
-                        default: 'language',
-                        description: 'the languge of the project viewer'
+                        id: 'marty.enableBlock',
+                        default: 'turn on motors',
+                        description: 'Turn on Motors'
+                    }),
+                    blockType: BlockType.COMMAND,
+                },
+                {
+                    opcode: 'm_stand_straight',
+                    text: formatMessage({
+                        id: 'marty.standStraightBlock',
+                        default: 'stand straight in [MOVETIME]s',
+                        description: 'Stand up straight'
+                    }),
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        MOVETIME: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 1,
+                        }
+                    }
+                },
+                '---',
+                {
+                    opcode: 'm_wiggle',
+                    text: formatMessage({
+                        id: 'marty.wiggleBlock',
+                        default: 'wiggle',
+                        description: 'Wiggle Celebration'
+                    }),
+                    blockType: BlockType.COMMAND,
+                },
+                {
+                    opcode: 'm_circle_dance',
+                    text: formatMessage({
+                        id: 'marty.circleDanceBlock',
+                        default: 'circle dance [DIRECTION] in [MOVETIME] s',
+                        description: 'Circle Dance Celebration'
+                    }),
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        DIRECTION: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'left',
+                            menu: 'turn_directions',
+                        },
+                        MOVETIME: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 1,
+                        },
+                    }
+                },
+                {
+                    opcode: 'm_play_sound',
+                    text: formatMessage({
+                        id: 'marty.playSoundBlock',
+                        default: 'play sound from [STARTF]Hz to [STOPF]Hz over [DURATION]s',
+                        description: 'Play Sound'
+                    }),
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        STARTF: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 261,
+                        },
+                        STOPF: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 523,
+                        },
+                        DURATION: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0.5,
+                        },
+                    }
+                },
+                '---',
+                {
+                    opcode: 'm_walkf',
+                    text: formatMessage({
+                        id: 'marty.walkFBlock',
+                        default: 'walk [NUMSTEPS] steps forwards',
+                        description: 'Walking forwards block'
+                    }),
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        NUMSTEPS: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 2,
+                        },
+                    }
+                },
+                {
+                    opcode: 'm_walkb',
+                    text: formatMessage({
+                        id: 'marty.walkBBlock',
+                        default: 'walk [NUMSTEPS] steps backwards',
+                        description: 'Walking backwards block'
+                    }),
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        NUMSTEPS: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 2,
+                        },
+                    }
+                },
+                {
+                    opcode: 'm_walk',
+                    text: formatMessage({
+                        id: 'marty.walkBlock',
+                        default: 'walk [NUMSTEPS] steps with length [STEPLEN] in [STEPTIME]s turning [TURN]',
+                        description: 'Walking block'
+                    }),
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        NUMSTEPS: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 2,
+                        },
+                        STEPLEN: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 45,
+                        },
+                        STEPTIME: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 1.3,
+                        },
+                        TURN: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0,
+                        },
+                    }
+                },
+                {
+                    opcode: 'm_kick',
+                    text: formatMessage({
+                        id: 'marty.kickBlock',
+                        default: 'kick [SIDE] leg',
+                        description: 'Kicking block'
+                    }),
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        SIDE: {
+                            type: ArgumentType.STRING,
+                            menu: 'turn_directions',
+                            defaultValue: 'left',
+                        },
+                    }
+                },
+                {
+                    opcode: 'm_turn',
+                    text: formatMessage({
+                        id: 'marty.turnBlock',
+                        default: 'turn [DIRECTION] [NUMSTEPS] steps',
+                        description: 'Turning block'
+                    }),
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        DIRECTION: {
+                            type: ArgumentType.STRING,
+                            menu: 'turn_directions',
+                            defaultValue: 'left',
+                        },
+                        NUMSTEPS: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 2,
+                        },
+                    }
+                },
+                {
+                    opcode: 'm_lean',
+                    text: formatMessage({
+                        id: 'marty.leanBlock',
+                        default: 'lean to the [SIDE] in [MOVETIME]s',
+                        description: 'Leaning block'
+                    }),
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        SIDE: {
+                            type: ArgumentType.STRING,
+                            menu: 'turn_directions',
+                            defaultValue: 'left',
+                        },
+                        MOVETIME: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0.5,
+                        },
+                    }
+                },
+                {
+                    opcode: 'm_sidestep',
+                    text: formatMessage({
+                        id: 'marty.sidestepBlock',
+                        default: 'Slide [NUMSTEPS] times to the [SIDE] in [MOVETIME]s, length [STEPLEN]',
+                        description: 'Leaning block'
+                    }),
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        STEPLEN: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 50,
+                        },
+                        SIDE: {
+                            type: ArgumentType.STRING,
+                            menu: 'turn_directions',
+                            defaultValue: 'left',
+                        },
+                        NUMSTEPS: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 1,
+                        },
+                        MOVETIME: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0.8,
+                        },
+                    }
+                },
+                '---',
+                {
+                    opcode: 'm_eyes',
+                    text: formatMessage({
+                        id: 'marty.eyesBlock',
+                        default: 'eyes [EYES]',
+                        description: 'Eye block'
+                    }),
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        EYES: {
+                            type: ArgumentType.STRING,
+                            menu: 'eyes',
+                            defaultValue: 'excited',
+                        },
+                    }
+                },
+                {
+                    opcode: 'm_move_leg',
+                    text: formatMessage({
+                        id: 'marty.moveLegFBlock',
+                        default: 'move [LEG] leg [DIRECTION]',
+                        description: 'Move leg forwards'
+                    }),
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        LEG: {
+                            type: ArgumentType.STRING,
+                            menu: 'leg',
+                            defaultValue: 'left',
+                        },
+                        DIRECTION: {
+                            type: ArgumentType.STRING,
+                            menu: 'saggital',
+                            defaultValue: 'forward',
+                        }
+                    }
+                },
+                {
+                    opcode: 'm_lift_leg',
+                    text: formatMessage({
+                        id: 'marty.liftLegBlock',
+                        default: 'lift [LEG] leg',
+                        description: 'Leg liftblock'
+                    }),
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        LEG: {
+                            type: ArgumentType.STRING,
+                            menu: 'leg',
+                            defaultValue: 'left',
+                        },
+                    }
+                },
+                {
+                    opcode: 'm_lower_leg',
+                    text: formatMessage({
+                        id: 'marty.lowerLegBlock',
+                        default: 'lower legs',
+                        description: 'Lower legs'
+                    }),
+                    blockType: BlockType.COMMAND,
+                },
+                {
+                    opcode: 'm_move_joint',
+                    text: formatMessage({
+                        id: 'marty.moveJointBlock',
+                        default: 'move [JOINT] to [POSITION] in [MOVETIME]s',
+                        description: 'Move a joint'
+                    }),
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        JOINT: {
+                            type: ArgumentType.STRING,
+                            menu: 'joints',
+                            defaultValue: 'right arm',
+                        },
+                        POSITION: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: -100,
+                        },
+                        MOVETIME: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 1,
+                        },
+                    }
+                },
+                '---',
+                {
+                    opcode: 'm_get_batt',
+                    text: formatMessage({
+                        id: 'marty.battVoltBlock',
+                        default: 'battery voltage',
+                        description: 'Get battery voltage'
                     }),
                     blockType: BlockType.REPORTER,
-                    arguments: {}
-                }
+                },
+                {
+                    opcode: 'm_get_gpio',
+                    text: formatMessage({
+                        id: 'marty.GPIOBlock',
+                        default: 'GPIO input [GPIO]',
+                        description: 'Get GPIO input'
+                    }),
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        GPIO: {
+                            type: ArgumentType.STRING,
+                            menu: 'gpios',
+                            defaultValue: '0',
+                        },
+                    }
+                },
+                {
+                    opcode: 'm_get_motor_current',
+                    text: formatMessage({
+                        id: 'marty.motorCurrentBlock',
+                        default: 'current from motor [MOTOR]',
+                        description: 'Get motor current input'
+                    }),
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        MOTOR: {
+                            type: ArgumentType.STRING,
+                            menu: 'motorCurrents',
+                            defaultValue: 'right arm',
+                        },
+                    }
+                },
+                {
+                    opcode: 'm_get_accel',
+                    text: formatMessage({
+                        id: 'marty.accelBlock',
+                        default: 'accelerometer [AXIS]',
+                        description: 'Get accelerometer input'
+                    }),
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        AXIS: {
+                            type: ArgumentType.STRING,
+                            menu: 'accel',
+                            defaultValue: 'X axis',
+                        },
+                    }
+                },
+                {
+                    opcode: 'm_get_prox',
+                    text: formatMessage({
+                        id: 'marty.battProxBlock',
+                        default: 'proximity sensor',
+                        description: 'Get proximity sensor'
+                    }),
+                    blockType: BlockType.REPORTER,
+                },
             ],
             menus: {
-                languages: this._supportedLanguages
+                languages: this._supportedLanguages,
+                leg: ['left', 'right'],
+                turn_directions: ['left', 'right'],
+                directions: ['left', 'right', 'forward', 'backward'],
+                eyes: ['normal', 'wide', 'angry', 'excited'],
+                gpios: ['0', '1', '2', '3', '4', '5', '6', '7'],
+                motorCurrents: ['right hip', 'right twist', 'right knee',
+                                'left hip', 'left twist', 'left knee',
+                                'right arm', 'left arm'],
+                joints: ['right hip', 'right twist', 'right knee',
+                         'left hip', 'left twist', 'left knee',
+                         'right arm', 'left arm', 'eyes'],
+                accel: ['X axis', 'Y axis', 'Z axis'],
+                enabled: ['enabled', 'disabled'],
+                saggital: ['forward', 'backward'],
+                stopTypes: ['finish move', 'freeze',
+                            'disable motors', 'return to zero',
+                            'pause', 'pause and disable motors']
             }
         };
     }
 
+
+    /****
+     **
+     ** B L O C K S
+     **
+     ****/
+
     m_hello () {
-        console.log("Hello");
-        console.log(this._peripheral);
-        this._peripheral.marty.enable_motors();
-        this._peripheral.marty.hello();
+        this._peripheral.marty.hello(1);
     }
+
+    m_stop (args) {
+        STOPTYPE = 'freeze';
+        this._peripheral.marty.stop(STOPTYPE);
+    }
+
+    m_disable_motors () {
+        this._peripheral.marty.disable_motors();
+    }
+
+    m_enable_motors () {
+        this._peripheral.marty.enable_motors();
+    }
+
+    m_stand_straight (args) {
+        this._peripheral.marty.stand_straight(args.MOVETIME*1000);
+    }
+
+    /* - - - */
+
+    m_wiggle () {
+        this._peripheral.marty.celebrate(4000);
+    }
+
+    m_circle_dance (args) {
+        this._peripheral.marty.circle_dance(args.DIRECTION, args.MOVETIME*1000);
+    }
+
+    m_play_sound (args) {
+        this._peripheral.marty.play_sound(parseInt(args.STARTF), parseInt(args.STOPF),
+                                          parseInt(args.DURATION*1000));
+    }
+
+
+    /* - - - */
+    
+    m_walk (args) {
+        this._peripheral.marty.walk(parseInt(args.NUMSTEPS),
+                                    parseInt(args.TURN),
+                                    parseFloat(args.STEPTIME)*1000,
+                                    parseInt(args.STEPLEN));
+    }
+
+    m_walkf (args) {
+        this._peripheral.marty.walk(parseInt(args.NUMSTEPS), 0, 1500, 45);
+    }
+
+    m_walkb (args) {
+        this._peripheral.marty.walk(parseInt(args.NUMSTEPS), 0, 1500, -45);
+    }
+
+    m_kick (args) {
+        this._peripheral.marty.kick(args.SIDE, 0, 2000);
+    }
+
+    m_turn (args) {
+        var turn = 80;
+        if (args.DIRECTION == "right" ){
+            turn = -80;
+        }
+        this._peripheral.marty.walk(parseInt(args.NUMSTEPS), turn, 1300, 0);
+    }
+
+    m_lean (args) {
+        this._peripheral.marty.lean(args.SIDE, 60, args.MOVETIME*1000);
+    }
+
+    m_sidestep (args) {
+        this._peripheral.marty.sidestep(args.SIDE,
+                                        parseInt(args.NUMSTEPS),
+                                        parseFloat(args.MOVETIME)*1000,
+                                        parseInt(args.STEPLEN));
+    }
+
+    /* - - - */
+
+    m_eyes (args) {
+        var eyepos = [];
+        eyepos['normal'] = 0; eyepos['angry'] = 50; eyepos['excited'] = -25; eyepos['wide'] = -100;
+        this._peripheral.marty.move_joint(8, eyepos[args.EYES], 100);
+    }
+
+    m_lift_leg (args) {
+        var joint;
+        var mult = 1;
+        if (args.LEG == 'left'){
+            joint = 'left knee';
+            mult = -1;
+        } else {
+            joint = 'right knee';
+        }
+        this._peripheral.marty.move_joint(this.jointID[joint], 80*mult, 750);
+    }
+
+    m_lower_leg () {
+        var left_knee = this._peripheral.marty.get_sensor("mp" + this.jointID['left knee']);
+        var right_knee = this._peripheral.marty.get_sensor("mp" + this.jointID['right knee']);
+        /* if (left_knee === null || right_knee === null){
+         *     setTimeout(ext.lower_leg, 200, callback);
+         *     return;
+         * }*/
+        if (right_knee > 0 && right_knee > left_knee){
+            this._peripheral.marty.move_joint(this.jointID['right knee'], left_knee, 500);
+        } else {
+            this._peripheral.marty.move_joint(this.jointID['left knee'], right_knee, 500);
+        }
+    }
+
+    m_move_leg (args) {
+        var joint;
+        var mult = 1;
+        if (args.LEG == 'left'){
+            joint = 'left hip';
+        } else {
+            joint = 'right hip';
+        }
+        if (args.DIRECTION == 'forward'){mult = -1};
+        this._peripheral.marty.move_joint(this.jointID[joint], 30*mult, 750);
+    }
+
+    m_move_joint (args) {
+        this._peripheral.marty.move_joint(this.jointID[args.JOINT],
+                                          args.POSITION,
+                                          args.MOVETIME*1000);
+    }
+
+    /* - - - */
+
+    m_get_batt () {
+        /* TODO often returns null */
+        return this._peripheral.marty.get_sensor("battery");
+    }
+
+    m_get_gpio (args) {
+        /* TODO often returns null */
+        return this._peripheral.marty.get_sensor("gpio" + args.GPIO);
+    }
+
+    m_get_motor_current (args) {
+        /* TODO often returns null */
+        return this._peripheral.marty.get_sensor("mc" + this.jointID[args.MOTOR]);
+    }
+
+    m_get_accel (args) {
+        /* TODO often returns null */
+        var axisID = [];
+        axisID['X axis'] = 0; axisID['Y axis'] = 1; axisID['Z axis'] = 2;
+        return this._peripheral.marty.get_sensor("acc" + axisID[args.AXIS]);
+    }
+
+    m_get_prox (args) {
+        /* TODO often returns null */
+        return this._peripheral.marty.get_sensor("prox");
+    }
+
+    /** * * * * * * * * * * **/
+
     
     /**
      * Get the human readable language value for the reporter block.
