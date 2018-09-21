@@ -15,18 +15,6 @@ const languageNames = require('scratch-translate-extension-languages');
 const formatMessage = require('format-message');
 const Marty = require('./marty');
 
-/**
- * The url of the translate server.
- * @type {string}
- */
-const serverURL = 'https://translate-service.scratch.mit.edu/';
-
-/**
- * How long to wait in ms before timing out requests to translate server.
- * @type {int}
- */
-const serverTimeoutMs = 10000; // 10 seconds (chosen arbitrarily).
-
 
 
 
@@ -320,35 +308,6 @@ class Scratch3MartyBlocks {
             const obj = {text: entry.name, value: entry.code};
             return obj;
         });
-
-        /**
-         * A randomly selected language code, for use as the default value in the language menu.
-         * @type {string}
-         * @private
-         */
-        this._randomLanguageCode = this._supportedLanguages[
-            Math.floor(Math.random() * this._supportedLanguages.length)].value;
-
-        /**
-         * The result from the most recent translation.
-         * @type {string}
-         * @private
-         */
-        this._translateResult = '';
-
-        /**
-         * The language of the text most recently translated.
-         * @type {string}
-         * @private
-         */
-        this._lastLangTranslated = '';
-
-        /**
-         * The text most recently translated.
-         * @type {string}
-         * @private
-         */
-        this._lastTextTranslated = '';
 
         this.jointID = [];
         this.jointID["left hip"] = 0;
@@ -816,7 +775,7 @@ class Scratch3MartyBlocks {
                 stopTypes: ['finish move', 'freeze',
                             'disable motors', 'return to zero',
                             'pause', 'pause and disable motors']
-            }
+            },
         };
     }
 
@@ -1045,50 +1004,6 @@ class Scratch3MartyBlocks {
         return 'en';
     }
 
-    /**
-     * Translates the text in the translate block to the language specified in the menu.
-     * @param {object} args - the block arguments.
-     * @return {Promise} - a promise that resolves after the response from the translate server.
-     */
-    getTranslate (args) {
-        // Don't remake the request if we already have the value.
-        if (this._lastTextTranslated === args.WORDS &&
-            this._lastLangTranslated === args.LANGUAGE) {
-            return this._translateResult;
-        }
-
-        const lang = this.getLanguageCodeFromArg(args.LANGUAGE);
-
-        let urlBase = `${serverURL}translate?language=`;
-        urlBase += lang;
-        urlBase += '&text=';
-        urlBase += encodeURIComponent(args.WORDS);
-
-        const tempThis = this;
-        const translatePromise = new Promise(resolve => {
-            nets({
-                url: urlBase,
-                timeout: serverTimeoutMs
-            }, (err, res, body) => {
-                if (err) {
-                    log.warn(`error fetching translate result! ${res}`);
-                    resolve('');
-                    return '';
-                }
-                const translated = JSON.parse(body).result;
-                tempThis._translateResult = translated;
-                // Cache what we just translated so we don't keep making the
-                // same call over and over.
-                tempThis._lastTextTranslated = args.WORDS;
-                tempThis._lastLangTranslated = args.LANGUAGE;
-                resolve(translated);
-                return translated;
-            });
-
-        });
-        translatePromise.then(translatedText => translatedText);
-        return translatePromise;
-    }
 }
 
 
