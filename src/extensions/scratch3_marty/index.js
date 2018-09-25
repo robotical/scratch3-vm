@@ -309,6 +309,8 @@ class Scratch3MartyBlocks {
             return obj;
         });
 
+        this._blockingMode = true;
+
         this.jointID = [];
         this.jointID["left hip"] = 0;
         this.jointID["left twist"] = 1;
@@ -755,6 +757,23 @@ class Scratch3MartyBlocks {
                     }),
                     blockType: BlockType.REPORTER,
                 },
+                '---',
+                {
+                    opcode: 'm_set_blocking',
+                    text: formatMessage({
+                        id: 'marty.blockingBloxk',
+                        default: 'set blocking mode [BLOCK]',
+                        description: 'Toggle Blocking Mode'
+                    }),
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        BLOCK: {
+                            type: ArgumentType.STRING,
+                            menu: 'enabled',
+                            defaultValue: 'enabled',
+                        },
+                    }
+                },
             ],
             menus: {
                 languages: this._supportedLanguages,
@@ -788,6 +807,9 @@ class Scratch3MartyBlocks {
 
     m_hello () {
         this._peripheral.marty.hello(1);
+        if (this._blockingMode)
+            return new Promise((resolve) =>
+                setTimeout(resolve, 3000));
     }
 
     m_stop (args) {
@@ -804,22 +826,34 @@ class Scratch3MartyBlocks {
     }
 
     m_stand_straight (args) {
-        this._peripheral.marty.stand_straight(args.MOVETIME*1000);
+        this._peripheral.marty.stand_straight(parseFloat(args.MOVETIME)*1000);
+        if (this._blockingMode)
+            return new Promise((resolve) =>
+                setTimeout(resolve, parseFloat(args.MOVETIME)*1000));
     }
 
     /* - - - */
 
     m_wiggle () {
         this._peripheral.marty.celebrate(4000);
+        if (this._blockingMode)
+            return new Promise((resolve) =>
+                setTimeout(resolve, 4000));
     }
 
     m_circle_dance (args) {
-        this._peripheral.marty.circle_dance(args.DIRECTION, args.MOVETIME*1000);
+        this._peripheral.marty.circle_dance(args.DIRECTION, parseFloat(args.MOVETIME)*1000);
+        if (this._blockingMode)
+            return new Promise((resolve) =>
+                setTimeout(resolve, parseFloat(args.MOVETIME)*1000));
     }
 
     m_play_sound (args) {
         this._peripheral.marty.play_sound(parseInt(args.STARTF), parseInt(args.STOPF),
-                                          parseInt(args.DURATION*1000));
+                                          parseFloat(args.DURATION)*1000);
+        if (this._blockingMode)
+            return new Promise((resolve) =>
+                setTimeout(resolve, parseFloat(args.DURATION)*1000));
     }
 
 
@@ -830,18 +864,30 @@ class Scratch3MartyBlocks {
                                     parseInt(args.TURN),
                                     parseFloat(args.STEPTIME)*1000,
                                     parseInt(args.STEPLEN));
+        if (this._blockingMode)
+            return new Promise((resolve) =>
+                setTimeout(resolve, parseFloat(args.STEPTIME) * 1000 * parseInt(args.NUMSTEPS)));
     }
 
     m_walkf (args) {
         this._peripheral.marty.walk(parseInt(args.NUMSTEPS), 0, 1500, 45);
+        if (this._blockingMode)
+            return new Promise((resolve) =>
+                setTimeout(resolve, 1500 * parseInt(args.NUMSTEPS)));
     }
 
     m_walkb (args) {
         this._peripheral.marty.walk(parseInt(args.NUMSTEPS), 0, 1500, -45);
+        if (this._blockingMode)
+            return new Promise((resolve) =>
+                setTimeout(resolve, 1500 * parseInt(args.NUMSTEPS)));
     }
 
     m_kick (args) {
         this._peripheral.marty.kick(args.SIDE, 0, 2000);
+        if (this._blockingMode)
+            return new Promise((resolve) =>
+                setTimeout(resolve, 2000));
     }
 
     m_turn (args) {
@@ -850,10 +896,16 @@ class Scratch3MartyBlocks {
             turn = -80;
         }
         this._peripheral.marty.walk(parseInt(args.NUMSTEPS), turn, 1300, 0);
+        if (this._blockingMode)
+            return new Promise((resolve) =>
+                setTimeout(resolve, 1300 * parseInt(args.NUMSTEPS)));
     }
 
     m_lean (args) {
-        this._peripheral.marty.lean(args.SIDE, 60, args.MOVETIME*1000);
+        this._peripheral.marty.lean(args.SIDE, 60, parseFloat(args.MOVETIME)*1000);
+        if (this._blockingMode)
+            return new Promise((resolve) =>
+                setTimeout(resolve, parseFloat(args.MOVETIME)*1000));
     }
 
     m_sidestep (args) {
@@ -861,6 +913,9 @@ class Scratch3MartyBlocks {
                                         parseInt(args.NUMSTEPS),
                                         parseFloat(args.MOVETIME)*1000,
                                         parseInt(args.STEPLEN));
+        if (this._blockingMode)
+            return new Promise((resolve) =>
+                setTimeout(resolve, parseFloat(args.MOVETIME)* 1000 * parseInt(args.NUMSTEPS)));
     }
 
     /* - - - */
@@ -869,6 +924,9 @@ class Scratch3MartyBlocks {
         var eyepos = [];
         eyepos['normal'] = 0; eyepos['angry'] = 50; eyepos['excited'] = -25; eyepos['wide'] = -100;
         this._peripheral.marty.move_joint(8, eyepos[args.EYES], 100);
+        if (this._blockingMode)
+            return new Promise((resolve) =>
+                setTimeout(resolve, 100));
     }
 
     m_lift_leg (args) {
@@ -881,6 +939,9 @@ class Scratch3MartyBlocks {
             joint = 'right knee';
         }
         this._peripheral.marty.move_joint(this.jointID[joint], 80*mult, 750);
+        if (this._blockingMode)
+            return new Promise((resolve) =>
+                setTimeout(resolve, 750));
     }
 
     m_lower_leg () {
@@ -895,6 +956,9 @@ class Scratch3MartyBlocks {
         } else {
             this._peripheral.marty.move_joint(this.jointID['left knee'], right_knee, 500);
         }
+        if (this._blockingMode)
+            return new Promise((resolve) =>
+                setTimeout(resolve, 500));
     }
 
     m_move_leg (args) {
@@ -907,12 +971,18 @@ class Scratch3MartyBlocks {
         }
         if (args.DIRECTION == 'forward'){mult = -1};
         this._peripheral.marty.move_joint(this.jointID[joint], 30*mult, 750);
+        if (this._blockingMode)
+            return new Promise((resolve) =>
+                setTimeout(resolve, 750));
     }
 
     m_move_joint (args) {
         this._peripheral.marty.move_joint(this.jointID[args.JOINT],
                                           args.POSITION,
-                                          args.MOVETIME*1000);
+                                          parseFloat(args.MOVETIME)*1000);
+        if (this._blockingMode)
+            return new Promise((resolve) =>
+                setTimeout(resolve, parseFloat(args.MOVETIME)*1000));
     }
 
     /* - - - */
@@ -944,6 +1014,19 @@ class Scratch3MartyBlocks {
         return this._peripheral.marty.get_sensor("prox");
     }
 
+
+    /* - - - */
+
+    m_set_blocking(args) {
+        if (args.BLOCK == 'enabled') {
+            this._blockingMode = true;
+        } else {
+            this._blockingMode = false;
+        }
+        console.log('Setting Marty blocking to ' + args.BLOCK + ' (' + this._blockingMode + ')');
+    }
+
+    
     /** * * * * * * * * * * **/
 
     
