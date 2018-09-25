@@ -74,6 +74,11 @@ class MicroBit {
         this._runtime.registerPeripheralExtension(extensionId, this);
 
         /**
+         * The id of the extension this peripheral belongs to.
+         */
+        this._extensionId = extensionId;
+
+        /**
          * The most recently received value for each sensor.
          * @type {Object.<string, number>}
          * @private
@@ -200,7 +205,7 @@ class MicroBit {
      * Called by the runtime when user wants to scan for a peripheral.
      */
     scan () {
-        this._ble = new BLE(this._runtime, {
+        this._ble = new BLE(this._runtime, this._extensionId, {
             filters: [
                 {services: [BLEUUID.service]}
             ]
@@ -703,7 +708,7 @@ class Scratch3MicroBitBlocks {
                     opcode: 'whenPinConnected',
                     text: formatMessage({
                         id: 'microbit.whenPinConnected',
-                        default: 'when pin [PIN] connected test',
+                        default: 'when pin [PIN] connected',
                         description: 'when the pin detects a connection to Earth/Ground'
 
                     }),
@@ -783,7 +788,7 @@ class Scratch3MicroBitBlocks {
      * @return {Promise} - a Promise that resolves after a tick.
      */
     displaySymbol (args) {
-        const symbol = cast.toString(args.MATRIX);
+        const symbol = cast.toString(args.MATRIX).replace(/\s/g, '');
         const reducer = (accumulator, c, index) => {
             const value = (c === '0') ? accumulator : accumulator + Math.pow(2, index);
             return value;
