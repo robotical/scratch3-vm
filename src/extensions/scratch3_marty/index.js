@@ -103,7 +103,11 @@ class MartyPeripheral {
          * @type {str}
          * @private
          */
-        this._localIp = localIp;
+        if (localIp != null){
+            this._localIp = localIp.split('.').slice(0, -1).join('.');
+        } else {
+            this._localIp = '192.168.0';
+        }
         console.log('Local IP for Marty Peripheral is ' + this._localIp);
         this.RTCPeerConnection = window.webkitRTCPeerConnection ||
                                  window.mozRTCPeerConnection;
@@ -131,7 +135,7 @@ class MartyPeripheral {
 
         // if there is an
         if (~this._onScanTimeout){
-            this._scanRange('192.168.0'); // TODO use localIp
+            this._scanRange(this._localIp); // TODO use localIp
             this._onScanTimeout = window.setTimeout(this._sendDiscoverTimeout, this._scanTimeout);
         }
     }
