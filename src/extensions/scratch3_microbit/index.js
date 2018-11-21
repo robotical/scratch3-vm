@@ -205,6 +205,9 @@ class MicroBit {
      * Called by the runtime when user wants to scan for a peripheral.
      */
     scan () {
+        if (this._ble) {
+            this._ble.disconnect();
+        }
         this._ble = new BLE(this._runtime, this._extensionId, {
             filters: [
                 {services: [BLEUUID.service]}
@@ -217,7 +220,9 @@ class MicroBit {
      * @param {number} id - the id of the peripheral to connect to.
      */
     connect (id) {
-        this._ble.connectPeripheral(id);
+        if (this._ble) {
+            this._ble.connectPeripheral(id);
+        }
     }
 
     /**
@@ -225,7 +230,9 @@ class MicroBit {
      */
     disconnect () {
         window.clearInterval(this._timeoutID);
-        this._ble.disconnect();
+        if (this._ble) {
+            this._ble.disconnect();
+        }
     }
 
     /**
@@ -328,7 +335,7 @@ class MicroBit {
  * @readonly
  * @enum {string}
  */
-const TiltDirection = {
+const MicroBitTiltDirection = {
     FRONT: 'front',
     BACK: 'back',
     LEFT: 'left',
@@ -341,7 +348,7 @@ const TiltDirection = {
  * @readonly
  * @enum {string}
  */
-const Gestures = {
+const MicroBitGestures = {
     MOVED: 'moved',
     SHAKEN: 'shaken',
     JUMPED: 'jumped'
@@ -352,7 +359,7 @@ const Gestures = {
  * @readonly
  * @enum {string}
  */
-const Buttons = {
+const MicroBitButtons = {
     A: 'A',
     B: 'B',
     ANY: 'any'
@@ -363,7 +370,7 @@ const Buttons = {
  * @readonly
  * @enum {string}
  */
-const PinState = {
+const MicroBitPinState = {
     ON: 'on',
     OFF: 'off'
 };
@@ -401,11 +408,11 @@ class Scratch3MicroBitBlocks {
         return [
             {
                 text: 'A',
-                value: Buttons.A
+                value: MicroBitButtons.A
             },
             {
                 text: 'B',
-                value: Buttons.B
+                value: MicroBitButtons.B
             },
             {
                 text: formatMessage({
@@ -413,7 +420,7 @@ class Scratch3MicroBitBlocks {
                     default: 'any',
                     description: 'label for "any" element in button picker for micro:bit extension'
                 }),
-                value: Buttons.ANY
+                value: MicroBitButtons.ANY
             }
         ];
     }
@@ -429,7 +436,7 @@ class Scratch3MicroBitBlocks {
                     default: 'moved',
                     description: 'label for moved gesture in gesture picker for micro:bit extension'
                 }),
-                value: Gestures.MOVED
+                value: MicroBitGestures.MOVED
             },
             {
                 text: formatMessage({
@@ -437,7 +444,7 @@ class Scratch3MicroBitBlocks {
                     default: 'shaken',
                     description: 'label for shaken gesture in gesture picker for micro:bit extension'
                 }),
-                value: Gestures.SHAKEN
+                value: MicroBitGestures.SHAKEN
             },
             {
                 text: formatMessage({
@@ -445,7 +452,7 @@ class Scratch3MicroBitBlocks {
                     default: 'jumped',
                     description: 'label for jumped gesture in gesture picker for micro:bit extension'
                 }),
-                value: Gestures.JUMPED
+                value: MicroBitGestures.JUMPED
             }
         ];
     }
@@ -461,7 +468,7 @@ class Scratch3MicroBitBlocks {
                     default: 'on',
                     description: 'label for on element in pin state picker for micro:bit extension'
                 }),
-                value: PinState.ON
+                value: MicroBitPinState.ON
             },
             {
                 text: formatMessage({
@@ -469,7 +476,7 @@ class Scratch3MicroBitBlocks {
                     default: 'off',
                     description: 'label for off element in pin state picker for micro:bit extension'
                 }),
-                value: PinState.OFF
+                value: MicroBitPinState.OFF
             }
         ];
     }
@@ -485,7 +492,7 @@ class Scratch3MicroBitBlocks {
                     default: 'front',
                     description: 'label for front element in tilt direction picker for micro:bit extension'
                 }),
-                value: TiltDirection.FRONT
+                value: MicroBitTiltDirection.FRONT
             },
             {
                 text: formatMessage({
@@ -493,7 +500,7 @@ class Scratch3MicroBitBlocks {
                     default: 'back',
                     description: 'label for back element in tilt direction picker for micro:bit extension'
                 }),
-                value: TiltDirection.BACK
+                value: MicroBitTiltDirection.BACK
             },
             {
                 text: formatMessage({
@@ -501,7 +508,7 @@ class Scratch3MicroBitBlocks {
                     default: 'left',
                     description: 'label for left element in tilt direction picker for micro:bit extension'
                 }),
-                value: TiltDirection.LEFT
+                value: MicroBitTiltDirection.LEFT
             },
             {
                 text: formatMessage({
@@ -509,7 +516,7 @@ class Scratch3MicroBitBlocks {
                     default: 'right',
                     description: 'label for right element in tilt direction picker for micro:bit extension'
                 }),
-                value: TiltDirection.RIGHT
+                value: MicroBitTiltDirection.RIGHT
             }
         ];
     }
@@ -526,7 +533,7 @@ class Scratch3MicroBitBlocks {
                     default: 'any',
                     description: 'label for any direction element in tilt direction picker for micro:bit extension'
                 }),
-                value: TiltDirection.ANY
+                value: MicroBitTiltDirection.ANY
             }
         ];
     }
@@ -568,7 +575,7 @@ class Scratch3MicroBitBlocks {
                         BTN: {
                             type: ArgumentType.STRING,
                             menu: 'buttons',
-                            defaultValue: Buttons.A
+                            defaultValue: MicroBitButtons.A
                         }
                     }
                 },
@@ -584,7 +591,7 @@ class Scratch3MicroBitBlocks {
                         BTN: {
                             type: ArgumentType.STRING,
                             menu: 'buttons',
-                            defaultValue: Buttons.A
+                            defaultValue: MicroBitButtons.A
                         }
                     }
                 },
@@ -601,7 +608,7 @@ class Scratch3MicroBitBlocks {
                         GESTURE: {
                             type: ArgumentType.STRING,
                             menu: 'gestures',
-                            defaultValue: Gestures.MOVED
+                            defaultValue: MicroBitGestures.MOVED
                         }
                     }
                 },
@@ -667,7 +674,7 @@ class Scratch3MicroBitBlocks {
                         DIRECTION: {
                             type: ArgumentType.STRING,
                             menu: 'tiltDirectionAny',
-                            defaultValue: TiltDirection.ANY
+                            defaultValue: MicroBitTiltDirection.ANY
                         }
                     }
                 },
@@ -683,7 +690,7 @@ class Scratch3MicroBitBlocks {
                         DIRECTION: {
                             type: ArgumentType.STRING,
                             menu: 'tiltDirectionAny',
-                            defaultValue: TiltDirection.ANY
+                            defaultValue: MicroBitTiltDirection.ANY
                         }
                     }
                 },
@@ -699,7 +706,7 @@ class Scratch3MicroBitBlocks {
                         DIRECTION: {
                             type: ArgumentType.STRING,
                             menu: 'tiltDirection',
-                            defaultValue: TiltDirection.FRONT
+                            defaultValue: MicroBitTiltDirection.FRONT
                         }
                     }
                 },
@@ -887,7 +894,7 @@ class Scratch3MicroBitBlocks {
      */
     _isTilted (direction) {
         switch (direction) {
-        case TiltDirection.ANY:
+        case MicroBitTiltDirection.ANY:
             return (Math.abs(this._peripheral.tiltX / 10) >= Scratch3MicroBitBlocks.TILT_THRESHOLD) ||
                 (Math.abs(this._peripheral.tiltY / 10) >= Scratch3MicroBitBlocks.TILT_THRESHOLD);
         default:
@@ -903,13 +910,13 @@ class Scratch3MicroBitBlocks {
      */
     _getTiltAngle (direction) {
         switch (direction) {
-        case TiltDirection.FRONT:
+        case MicroBitTiltDirection.FRONT:
             return Math.round(this._peripheral.tiltY / -10);
-        case TiltDirection.BACK:
+        case MicroBitTiltDirection.BACK:
             return Math.round(this._peripheral.tiltY / 10);
-        case TiltDirection.LEFT:
+        case MicroBitTiltDirection.LEFT:
             return Math.round(this._peripheral.tiltX / -10);
-        case TiltDirection.RIGHT:
+        case MicroBitTiltDirection.RIGHT:
             return Math.round(this._peripheral.tiltX / 10);
         default:
             log.warn(`Unknown tilt direction in _getTiltAngle: ${direction}`);

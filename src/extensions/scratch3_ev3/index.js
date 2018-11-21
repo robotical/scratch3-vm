@@ -266,6 +266,8 @@ class EV3Motor {
      * @param {number} milliseconds - run the motor for this long.
      */
     turnOnFor (milliseconds) {
+        if (this._power === 0) return;
+
         const port = this._portMask(this._index);
         let n = milliseconds;
         let speed = this._power * this._direction;
@@ -323,6 +325,8 @@ class EV3Motor {
      * @param {number} time - the time in milliseconds.
      */
     coastAfter (time) {
+        if (this._power === 0) return;
+
         // Set the motor command id to check before starting coast
         const commandId = uid();
         this._commandID = commandId;
@@ -341,6 +345,8 @@ class EV3Motor {
      * Set the motor to coast.
      */
     coast () {
+        if (this._power === 0) return;
+
         const cmd = this._parent.generateCommand(
             Ev3Command.DIRECT_COMMAND_NO_REPLY,
             [
@@ -549,6 +555,9 @@ class EV3 {
      * Called by the runtime when user wants to scan for an EV3 peripheral.
      */
     scan () {
+        if (this._bt) {
+            this._bt.disconnect();
+        }
         this._bt = new BT(this._runtime, this._extensionId, {
             majorDeviceClass: 8,
             minorDeviceClass: 1
@@ -560,17 +569,22 @@ class EV3 {
      * @param {number} id - the id of the peripheral to connect to.
      */
     connect (id) {
-        this._bt.connectPeripheral(id);
+        if (this._bt) {
+            this._bt.connectPeripheral(id);
+        }
     }
 
     /**
      * Called by the runtime when user wants to disconnect from the EV3 peripheral.
      */
     disconnect () {
-        this._bt.disconnect();
         this._clearSensorsAndMotors();
         window.clearInterval(this._pollingIntervalID);
         this._pollingIntervalID = null;
+
+        if (this._bt) {
+            this._bt.disconnect();
+        }
     }
 
     /**
@@ -904,6 +918,9 @@ class Scratch3Ev3Blocks {
 
         // Create a new EV3 peripheral instance
         this._peripheral = new EV3(this.runtime, Scratch3Ev3Blocks.EXTENSION_ID);
+
+        this._playNoteForPicker = this._playNoteForPicker.bind(this);
+        this.runtime.on('PLAY_NOTE', this._playNoteForPicker);
     }
 
     /**
@@ -1083,7 +1100,7 @@ class Scratch3Ev3Blocks {
                     blockType: BlockType.COMMAND,
                     arguments: {
                         NOTE: {
-                            type: ArgumentType.NUMBER,
+                            type: ArgumentType.NOTE,
                             defaultValue: 60
                         },
                         TIME: {
@@ -1204,6 +1221,14 @@ class Scratch3Ev3Blocks {
 
     getBrightness () {
         return this._peripheral.brightness;
+    }
+
+    _playNoteForPicker (note, category) {
+        if (category !== this.getInfo().name) return;
+        this.beep({
+            NOTE: note,
+            TIME: 0.25
+        });
     }
 
     beep (args) {

@@ -7,6 +7,7 @@ const {Map} = require('immutable');
 const BlocksExecuteCache = require('./blocks-execute-cache');
 const log = require('../util/log');
 const Variable = require('./variable');
+const getMonitorIdForBlockWithArgs = require('../util/get-monitor-id');
 
 /**
  * @fileoverview
@@ -63,7 +64,14 @@ class Blocks {
              * execute.
              * @type {object.<string, object>}
              */
-            _executeCached: {}
+            _executeCached: {},
+
+            /**
+             * A cache of block IDs and targets to start threads on as they are
+             * actively monitored.
+             * @type {Array<{blockId: string, target: Target}>}
+             */
+            _monitored: null
         };
 
         /**
@@ -230,11 +238,20 @@ class Blocks {
     }
 
     /**
-     * Get names of parameters for the given procedure.
+     * Get names and ids of parameters for the given procedure.
      * @param {?string} name Name of procedure to query.
      * @return {?Array.<string>} List of param names for a procedure.
      */
     getProcedureParamNamesAndIds (name) {
+        return this.getProcedureParamNamesIdsAndDefaults(name).slice(0, 2);
+    }
+
+    /**
+     * Get names, ids, and defaults of parameters for the given procedure.
+     * @param {?string} name Name of procedure to query.
+     * @return {?Array.<string>} List of param names for a procedure.
+     */
+    getProcedureParamNamesIdsAndDefaults (name) {
         const cachedNames = this._cache.procedureParamNames[name];
         if (typeof cachedNames !== 'undefined') {
             return cachedNames;
@@ -247,7 +264,9 @@ class Blocks {
                 block.mutation.proccode === name) {
                 const names = JSON.parse(block.mutation.argumentnames);
                 const ids = JSON.parse(block.mutation.argumentids);
-                this._cache.procedureParamNames[name] = [names, ids];
+                const defaults = JSON.parse(block.mutation.argumentdefaults);
+
+                this._cache.procedureParamNames[name] = [names, ids, defaults];
                 return this._cache.procedureParamNames[name];
             }
         }
@@ -329,7 +348,7 @@ class Blocks {
                 // Drag blocks onto another sprite
                 if (e.isOutside) {
                     const newBlocks = adapter(e);
-                    optRuntime.emitBlockEndDrag(newBlocks);
+                    optRuntime.emitBlockEndDrag(newBlocks, e.blockId);
                 }
             }
             break;
@@ -354,7 +373,7 @@ class Blocks {
             // into a state where a local var was requested for the stage,
             // create a stage (global) var after checking for name conflicts
             // on all the sprites.
-            if (e.isLocal && editingTarget && !editingTarget.isStage) {
+            if (e.isLocal && editingTarget && !editingTarget.isStage && !e.isCloud) {
                 if (!editingTarget.lookupVariableById(e.varId)) {
                     editingTarget.createVariable(e.varId, e.varName, e.varType);
                 }
@@ -366,7 +385,7 @@ class Blocks {
                         return;
                     }
                 }
-                stage.createVariable(e.varId, e.varName, e.varType);
+                stage.createVariable(e.varId, e.varName, e.varType, e.isCloud);
             }
             break;
         case 'var_rename':
@@ -480,6 +499,7 @@ class Blocks {
         this._cache.procedureParamNames = {};
         this._cache.procedureDefinitions = {};
         this._cache._executeCached = {};
+        this._cache._monitored = null;
     }
 
     /**
@@ -512,11 +532,20 @@ class Blocks {
     changeBlock (args, optRuntime) {
         // Validate
         if (['field', 'mutation', 'checkbox'].indexOf(args.element) === -1) return;
-        const block = this._blocks[args.id];
+        let block = this._blocks[args.id];
         if (typeof block === 'undefined') return;
-        const wasMonitored = block.isMonitored;
         switch (args.element) {
         case 'field':
+            // TODO when the field of a monitored block changes,
+            // update the checkbox in the flyout based on whether
+            // a monitor for that current combination of selected parameters exists
+            // e.g.
+            // 1. check (current [v year])
+            // 2. switch dropdown in flyout block to (current [v minute])
+            // 3. the checkbox should become unchecked if we're not already
+            //    monitoring current minute
+
+
             // Update block value
             if (!block.fields[args.name]) return;
             if (args.name === 'VARIABLE' || args.name === 'LIST' ||
@@ -548,10 +577,35 @@ class Blocks {
             block.mutation = mutationAdapter(args.value);
             break;
         case 'checkbox': {
-            block.isMonitored = args.value;
             if (!optRuntime) {
                 break;
             }
+
+            // A checkbox usually has a one to one correspondence with the monitor
+            // block but in the case of monitored reporters that have arguments,
+            // map the old id to a new id, creating a new monitor block if necessary
+            if (block.fields && Object.keys(block.fields).length > 0 &&
+                block.opcode !== 'data_variable' && block.opcode !== 'data_listcontents') {
+
+                // This block has an argument which needs to get separated out into
+                // multiple monitor blocks with ids based on the selected argument
+                const newId = getMonitorIdForBlockWithArgs(block.id, block.fields);
+                // Note: we're not just constantly creating a longer and longer id everytime we check
+                // the checkbox because we're using the id of the block in the flyout as the base
+
+                // check if a block with the new id already exists, otherwise create
+                let newBlock = optRuntime.monitorBlocks.getBlock(newId);
+                if (!newBlock) {
+                    newBlock = JSON.parse(JSON.stringify(block));
+                    newBlock.id = newId;
+                    optRuntime.monitorBlocks.createBlock(newBlock);
+                }
+
+                block = newBlock; // Carry on through the rest of this code with newBlock
+            }
+
+            const wasMonitored = block.isMonitored;
+            block.isMonitored = args.value;
 
             // Variable blocks may be sprite specific depending on the owner of the variable
             let isSpriteLocalVariable = false;
@@ -656,12 +710,23 @@ class Blocks {
      * @param {!object} runtime Runtime to run all blocks in.
      */
     runAllMonitored (runtime) {
-        Object.keys(this._blocks).forEach(blockId => {
-            if (this.getBlock(blockId).isMonitored) {
-                const targetId = this.getBlock(blockId).targetId;
-                runtime.addMonitorScript(blockId, targetId ? runtime.getTargetById(targetId) : null);
-            }
-        });
+        if (this._cache._monitored === null) {
+            this._cache._monitored = Object.keys(this._blocks)
+                .filter(blockId => this.getBlock(blockId).isMonitored)
+                .map(blockId => {
+                    const targetId = this.getBlock(blockId).targetId;
+                    return {
+                        blockId,
+                        target: targetId ? runtime.getTargetById(targetId) : null
+                    };
+                });
+        }
+
+        const monitored = this._cache._monitored;
+        for (let i = 0; i < monitored.length; i++) {
+            const {blockId, target} = monitored[i];
+            runtime.addMonitorScript(blockId, target);
+        }
     }
 
     /**

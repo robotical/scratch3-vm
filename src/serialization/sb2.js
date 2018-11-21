@@ -239,12 +239,44 @@ const globalBroadcastMsgStateGenerator = (function () {
 
 /**
  * Parse a single monitor object and create all its in-memory VM objects.
+ *
+ * It is important that monitors are parsed last,
+ * - after all sprite targets have finished parsing, and
+ * - after the rest of the stage has finished parsing.
+ *
+ * It is specifically important that all the scripts in the project
+ * have been parsed and all the relevant targets exist, have uids,
+ * and have their variables initialized.
+ * Calling this function before these things are true, will result in
+ * undefined behavior.
  * @param {!object} object - From-JSON "Monitor object"
  * @param {!Runtime} runtime - (in/out) Runtime object to load monitor info into.
  * @param {!Array.<Target>} targets - Targets have already been parsed.
  * @param {ImportedExtensionsInfo} extensions - (in/out) parsed extension information will be stored here.
  */
+
 const parseMonitorObject = (object, runtime, targets, extensions) => {
+    // In scratch 2.0, there are two monitors that now correspond to extension
+    // blocks (tempo and video motion/direction). In the case of the
+    // video motion/direction block, this reporter is not monitorable in Scratch 3.0.
+    // In the case of the tempo block, we should import it and load the music extension
+    // only when the monitor is actually visible.
+
+    const opcode = specMap[object.cmd].opcode;
+    const extIndex = opcode.indexOf('_');
+    const extID = opcode.substring(0, extIndex);
+
+    if (extID === 'videoSensing') {
+        return;
+    } else if (CORE_EXTENSIONS.indexOf(extID) === -1 && extID !== '' &&
+        !extensions.extensionIDs.has(extID) && !object.visible) {
+        // Don't import this monitor if it refers to a non-core extension that
+        // doesn't exist anywhere else in the project and it isn't visible.
+        // This should only apply to the tempo block at this point since
+        // there are no other sb2 blocks that are now extension monitors.
+        return;
+    }
+
     let target = null;
     // List blocks don't come in with their target name set.
     // Find the target by searching for a target with matching variable name/type.
@@ -287,7 +319,13 @@ const parseMonitorObject = (object, runtime, targets, extensions) => {
     } else if (object.cmd === 'contentsOfList:') {
         block.id = getVariableId(object.param, Variable.LIST_TYPE);
     } else if (runtime.monitorBlockInfo.hasOwnProperty(block.opcode)) {
-        block.id = runtime.monitorBlockInfo[block.opcode].getId(target.id, object.param);
+        block.id = runtime.monitorBlockInfo[block.opcode].getId(target.id, block.fields);
+    } else {
+        // If the opcode can't be found in the runtime monitorBlockInfo,
+        // then default to using the block opcode as the id instead.
+        // This is for extension monitors, and assumes that extension monitors
+        // cannot be sprite specific.
+        block.id = block.opcode;
     }
 
     // Block needs a targetId if it is targetting something other than the stage
@@ -296,10 +334,19 @@ const parseMonitorObject = (object, runtime, targets, extensions) => {
     // Property required for running monitored blocks.
     block.isMonitored = object.visible;
 
-    // Blocks can be created with children, flatten and add to monitorBlocks.
-    const newBlocks = flatten([block]);
-    for (let i = 0; i < newBlocks.length; i++) {
-        runtime.monitorBlocks.createBlock(newBlocks[i]);
+    const existingMonitorBlock = runtime.monitorBlocks._blocks[block.id];
+    if (existingMonitorBlock) {
+        // A monitor block already exists if the toolbox has been loaded and
+        // the monitor block is not target specific (because the block gets recycled).
+        // Update the existing block with the relevant monitor information.
+        existingMonitorBlock.isMonitored = object.visible;
+        existingMonitorBlock.targetId = block.targetId;
+    } else {
+        // Blocks can be created with children, flatten and add to monitorBlocks.
+        const newBlocks = flatten([block]);
+        for (let i = 0; i < newBlocks.length; i++) {
+            runtime.monitorBlocks.createBlock(newBlocks[i]);
+        }
     }
 
     // Convert numbered mode into strings for better understandability.
@@ -403,7 +450,11 @@ const parseScratchObject = function (object, runtime, extensions, topLevel, zip)
             // the file name of the costume should be the baseLayerID followed by the file ext
             const assetFileName = `${costumeSource.baseLayerID}.${ext}`;
             costumePromises.push(deserializeCostume(costume, runtime, zip, assetFileName)
-                .then(() => loadCostume(costume.md5, costume, runtime, 2 /* optVersion */)));
+                .then(asset => {
+                    costume.asset = asset;
+                    return loadCostume(costume.md5, costume, runtime, 2 /* optVersion */);
+                })
+            );
         }
     }
     // Sounds from JSON
@@ -437,7 +488,10 @@ const parseScratchObject = function (object, runtime, extensions, topLevel, zip)
             // followed by the file ext
             const assetFileName = `${soundSource.soundID}.${ext}`;
             soundPromises.push(deserializeSound(sound, runtime, zip, assetFileName)
-                .then(() => loadSound(sound, runtime, sprite)));
+                .then(asset => {
+                    sound.asset = asset;
+                    return loadSound(sound, runtime, sprite);
+                }));
         }
     }
 
@@ -453,12 +507,18 @@ const parseScratchObject = function (object, runtime, extensions, topLevel, zip)
     if (object.hasOwnProperty('variables')) {
         for (let j = 0; j < object.variables.length; j++) {
             const variable = object.variables[j];
+            // A variable is a cloud variable if:
+            // - the project says it's a cloud variable, and
+            // - it's a stage variable, and
+            // - the runtime can support another cloud variable
+            const isCloud = variable.isPersistent && topLevel && runtime.canAddCloudVariable();
             const newVariable = new Variable(
                 getVariableId(variable.name, Variable.SCALAR_TYPE),
                 variable.name,
                 Variable.SCALAR_TYPE,
-                variable.isPersistent
+                isCloud
             );
+            if (isCloud) runtime.addCloudVariable();
             newVariable.value = variable.value;
             target.variables[newVariable.id] = newVariable;
         }
@@ -683,6 +743,12 @@ const parseScratchObject = function (object, runtime, extensions, topLevel, zip)
                     }
                 }
             }
+            // It is important that monitors are parsed last
+            // - after all sprite targets have finished parsing
+            // - and this is the last thing that happens in the stage parsing
+            // It is specifically important that all the scripts in the project
+            // have been parsed and all the relevant targets exist, have uids,
+            // and have their variables initialized.
             for (let n = 0; n < deferredMonitors.length; n++) {
                 parseMonitorObject(deferredMonitors[n], runtime, targets, extensions);
             }
@@ -849,32 +915,35 @@ const parseBlock = function (sb2block, addBroadcastMsg, getVariableId, extension
                     // Single block occupies the input.
                     const parsedBlockDesc = parseBlock(providedArg, addBroadcastMsg, getVariableId, extensions,
                         parseState, comments, commentIndex);
-                    innerBlocks = [parsedBlockDesc[0]];
+                    innerBlocks = parsedBlockDesc[0] ? [parsedBlockDesc[0]] : [];
                     // Update commentIndex
                     commentIndex = parsedBlockDesc[1];
                 }
                 parseState.expectedArg = parentExpectedArg;
-                // Check if innerBlocks is an empty list.
-                // This indicates that all the inner blocks from the sb2 have
+
+                // Check if innerBlocks is not an empty list.
+                // An empty list indicates that all the inner blocks from the sb2 have
                 // unknown opcodes and have been skipped.
-                if (innerBlocks.length === 0) continue;
-                let previousBlock = null;
-                for (let j = 0; j < innerBlocks.length; j++) {
-                    if (j === 0) {
-                        innerBlocks[j].parent = activeBlock.id;
-                    } else {
-                        innerBlocks[j].parent = previousBlock;
+                if (innerBlocks.length > 0) {
+                    let previousBlock = null;
+                    for (let j = 0; j < innerBlocks.length; j++) {
+                        if (j === 0) {
+                            innerBlocks[j].parent = activeBlock.id;
+                        } else {
+                            innerBlocks[j].parent = previousBlock;
+                        }
+                        previousBlock = innerBlocks[j].id;
                     }
-                    previousBlock = innerBlocks[j].id;
+                    activeBlock.inputs[expectedArg.inputName].block = (
+                        innerBlocks[0].id
+                    );
+                    activeBlock.children = (
+                        activeBlock.children.concat(innerBlocks)
+                    );
                 }
+
                 // Obscures any shadow.
                 shadowObscured = true;
-                activeBlock.inputs[expectedArg.inputName].block = (
-                    innerBlocks[0].id
-                );
-                activeBlock.children = (
-                    activeBlock.children.concat(innerBlocks)
-                );
             }
             // Generate a shadow block to occupy the input.
             if (!expectedArg.inputOp) {
@@ -917,6 +986,16 @@ const parseBlock = function (sb2block, addBroadcastMsg, getVariableId, extension
                 fieldName = 'BROADCAST_OPTION';
                 if (shadowObscured) {
                     fieldValue = '';
+                }
+            } else if (expectedArg.inputOp === 'sensing_of_object_menu') {
+                if (shadowObscured) {
+                    fieldValue = '_stage_';
+                } else if (fieldValue === 'Stage') {
+                    fieldValue = '_stage_';
+                }
+            } else if (expectedArg.inputOp === 'note') {
+                if (shadowObscured) {
+                    fieldValue = 60;
                 }
             } else if (expectedArg.inputOp === 'music.menu.DRUM') {
                 if (shadowObscured) {
@@ -983,6 +1062,15 @@ const parseBlock = function (sb2block, addBroadcastMsg, getVariableId, extension
                 name: expectedArg.fieldName,
                 value: providedArg
             };
+
+            if (expectedArg.fieldName === 'CURRENTMENU') {
+                // In 3.0, the field value of the `sensing_current` block
+                // is in all caps.
+                activeBlock.fields[expectedArg.fieldName].value = providedArg.toUpperCase();
+                if (providedArg === 'day of week') {
+                    activeBlock.fields[expectedArg.fieldName].value = 'DAYOFWEEK';
+                }
+            }
 
             if (expectedArg.fieldName === 'VARIABLE') {
                 // Add `id` property to variable fields

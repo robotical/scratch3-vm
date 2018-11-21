@@ -96,8 +96,8 @@ class VirtualMachine extends EventEmitter {
         this.runtime.on(Runtime.BLOCK_DRAG_UPDATE, areBlocksOverGui => {
             this.emit(Runtime.BLOCK_DRAG_UPDATE, areBlocksOverGui);
         });
-        this.runtime.on(Runtime.BLOCK_DRAG_END, blocks => {
-            this.emit(Runtime.BLOCK_DRAG_END, blocks);
+        this.runtime.on(Runtime.BLOCK_DRAG_END, (blocks, topBlockId) => {
+            this.emit(Runtime.BLOCK_DRAG_END, blocks, topBlockId);
         });
         this.runtime.on(Runtime.EXTENSION_ADDED, blocksInfo => {
             this.emit(Runtime.EXTENSION_ADDED, blocksInfo);
@@ -111,8 +111,11 @@ class VirtualMachine extends EventEmitter {
         this.runtime.on(Runtime.PERIPHERAL_CONNECTED, () =>
             this.emit(Runtime.PERIPHERAL_CONNECTED)
         );
-        this.runtime.on(Runtime.PERIPHERAL_ERROR, data =>
-            this.emit(Runtime.PERIPHERAL_ERROR, data)
+        this.runtime.on(Runtime.PERIPHERAL_REQUEST_ERROR, () =>
+            this.emit(Runtime.PERIPHERAL_REQUEST_ERROR)
+        );
+        this.runtime.on(Runtime.PERIPHERAL_DISCONNECT_ERROR, data =>
+            this.emit(Runtime.PERIPHERAL_DISCONNECT_ERROR, data)
         );
         this.runtime.on(Runtime.PERIPHERAL_SCAN_TIMEOUT, () =>
             this.emit(Runtime.PERIPHERAL_SCAN_TIMEOUT)
@@ -215,6 +218,10 @@ class VirtualMachine extends EventEmitter {
         this.runtime.ioDevices.video.setProvider(videoProvider);
     }
 
+    setCloudProvider (cloudProvider) {
+        this.runtime.ioDevices.cloud.setProvider(cloudProvider);
+    }
+
     /**
      * Tell the specified extension to scan for a peripheral.
      * @param {string} extensionId - the id of the extension.
@@ -277,6 +284,7 @@ class VirtualMachine extends EventEmitter {
 
         return validationPromise
             .then(validatedInput => this.deserializeProject(validatedInput[0], validatedInput[1]))
+            .then(() => this.runtime.emitProjectLoaded())
             .catch(error => {
                 // Intentionally rejecting here (want errors to be handled by caller)
                 if (error.hasOwnProperty('validationError')) {
@@ -326,6 +334,17 @@ class VirtualMachine extends EventEmitter {
                 level: 6 // Tradeoff between best speed (1) and best compression (9)
             }
         });
+    }
+
+    /*
+     * @type {Array<object>} Array of all costumes and sounds currently in the runtime
+     */
+    get assets () {
+        return this.runtime.targets.reduce((acc, target) => (
+            acc
+                .concat(target.sprite.sounds.map(sound => sound.asset))
+                .concat(target.sprite.costumes.map(costume => costume.asset))
+        ), []);
     }
 
     _addFileDescsToZip (fileDescs, zip) {
@@ -460,6 +479,7 @@ class VirtualMachine extends EventEmitter {
             this.emitTargetsUpdate();
             this.emitWorkspaceUpdate();
             this.runtime.setEditingTarget(this.editingTarget);
+            this.runtime.ioDevices.cloud.setStage(this.runtime.getTargetForStage());
         });
     }
 
@@ -687,11 +707,14 @@ class VirtualMachine extends EventEmitter {
             // is updated as below.
             sound.format = '';
             const storage = this.runtime.storage;
-            sound.assetId = storage.builtinHelper.cache(
+            sound.asset = storage.createAsset(
                 storage.AssetType.Sound,
                 storage.DataFormat.WAV,
-                soundEncoding
+                soundEncoding,
+                null,
+                true // generate md5
             );
+            sound.assetId = sound.asset.assetId;
             sound.dataFormat = storage.DataFormat.WAV;
             sound.md5 = `${sound.assetId}.${sound.dataFormat}`;
         }
@@ -728,16 +751,16 @@ class VirtualMachine extends EventEmitter {
      *     a dataURI if it's a PNG or JPG, or null if it couldn't be found or decoded.
      */
     getCostume (costumeIndex) {
-        const id = this.editingTarget.getCostumes()[costumeIndex].assetId;
-        if (!id || !this.runtime || !this.runtime.storage) return null;
-        const format = this.runtime.storage.get(id).dataFormat;
+        const asset = this.editingTarget.getCostumes()[costumeIndex].asset;
+        if (!asset || !this.runtime || !this.runtime.storage) return null;
+        const format = asset.dataFormat;
         if (format === this.runtime.storage.DataFormat.SVG) {
-            return this.runtime.storage.get(id).decodeText();
+            return asset.decodeText();
         } else if (format === this.runtime.storage.DataFormat.PNG ||
                 format === this.runtime.storage.DataFormat.JPG) {
-            return this.runtime.storage.get(id).encodeDataURI();
+            return asset.encodeDataURI();
         }
-        log.error(`Unhandled format: ${this.runtime.storage.get(id).dataFormat}`);
+        log.error(`Unhandled format: ${asset.dataFormat}`);
         return null;
     }
 
@@ -778,14 +801,17 @@ class VirtualMachine extends EventEmitter {
             const reader = new FileReader();
             reader.addEventListener('loadend', () => {
                 const storage = this.runtime.storage;
-                costume.assetId = storage.builtinHelper.cache(
-                    storage.AssetType.ImageBitmap,
-                    storage.DataFormat.PNG,
-                    Buffer.from(reader.result)
-                );
                 costume.dataFormat = storage.DataFormat.PNG;
                 costume.bitmapResolution = bitmapResolution;
                 costume.size = [bitmap.width, bitmap.height];
+                costume.asset = storage.createAsset(
+                    storage.AssetType.ImageBitmap,
+                    costume.dataFormat,
+                    Buffer.from(reader.result),
+                    null, // id
+                    true // generate md5
+                );
+                costume.assetId = costume.asset.assetId;
                 costume.md5 = `${costume.assetId}.${costume.dataFormat}`;
                 this.emitTargetsUpdate();
             });
@@ -809,16 +835,19 @@ class VirtualMachine extends EventEmitter {
             costume.size = this.runtime.renderer.getSkinSize(costume.skinId);
         }
         const storage = this.runtime.storage;
-        costume.assetId = storage.builtinHelper.cache(
-            storage.AssetType.ImageVector,
-            storage.DataFormat.SVG,
-            (new TextEncoder()).encode(svg)
-        );
         // If we're in here, we've edited an svg in the vector editor,
         // so the dataFormat should be 'svg'
         costume.dataFormat = storage.DataFormat.SVG;
-        costume.md5 = `${costume.assetId}.${costume.dataFormat}`;
         costume.bitmapResolution = 1;
+        costume.asset = storage.createAsset(
+            storage.AssetType.ImageVector,
+            costume.dataFormat,
+            (new TextEncoder()).encode(svg),
+            null,
+            true // generate md5
+        );
+        costume.assetId = costume.asset.assetId;
+        costume.md5 = `${costume.assetId}.${costume.dataFormat}`;
         this.emitTargetsUpdate();
     }
 
@@ -1089,6 +1118,7 @@ class VirtualMachine extends EventEmitter {
      * @param {!string} targetId Id of target to add blocks to.
      * @param {?string} optFromTargetId Optional target id indicating that blocks are being
      * shared from that target. This is needed for resolving any potential variable conflicts.
+     * @return {!Promise} Promise that resolves when the extensions and blocks have been added.
      */
     shareBlocksToTarget (blocks, targetId, optFromTargetId) {
         const copiedBlocks = JSON.parse(JSON.stringify(blocks));
@@ -1101,10 +1131,24 @@ class VirtualMachine extends EventEmitter {
             fromTarget.resolveVariableSharingConflictsWithTarget(copiedBlocks, target);
         }
 
-        for (let i = 0; i < copiedBlocks.length; i++) {
-            target.blocks.createBlock(copiedBlocks[i]);
-        }
-        target.blocks.updateTargetSpecificBlocks(target.isStage);
+        // Create a unique set of extensionIds that are not yet loaded
+        const extensionIDs = new Set(copiedBlocks
+            .map(b => sb3.getExtensionIdForOpcode(b.opcode))
+            .filter(id => !!id) // Remove ids that do not exist
+            .filter(id => !this.extensionManager.isExtensionLoaded(id)) // and remove loaded extensions
+        );
+
+        // Create an array promises for extensions to load
+        const extensionPromises = Array.from(extensionIDs,
+            id => this.extensionManager.loadExtensionURL(id)
+        );
+
+        return Promise.all(extensionPromises).then(() => {
+            copiedBlocks.forEach(block => {
+                target.blocks.createBlock(block);
+            });
+            target.blocks.updateTargetSpecificBlocks(target.isStage);
+        });
     }
 
     /**
