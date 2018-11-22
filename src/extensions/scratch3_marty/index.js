@@ -1,4 +1,11 @@
 /**
+ * Icon svg to be displayed in the blocks category menu, encoded as a data URI.
+ * @type {string}
+ */
+// eslint-disable-next-line max-len
+const menuIconURI = 'data:image/png;base64,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';
+
+/**
  * Icon svg to be displayed at the left edge of each extension block, encoded as a data URI.
  * @type {string}
  */
@@ -10,7 +17,7 @@ const ArgumentType = require('../../extension-support/argument-type');
 const BlockType = require('../../extension-support/block-type');
 const Cast = require('../../util/cast');
 const log = require('../../util/log');
-const nets = require('nets');
+//const nets = require('nets');
 const languageNames = require('scratch-translate-extension-languages');
 const formatMessage = require('format-message');
 const Marty = require('./marty');
@@ -271,6 +278,14 @@ class Scratch3MartyBlocks {
 
     
     /**
+     * @return {string} - the name of this extension.
+     */
+    static get EXTENSION_NAME () {
+        return 'Marty the Robot';
+    }
+
+    
+    /**
      * The ID of the extension.
      * @return {string} the id
      */
@@ -294,24 +309,7 @@ class Scratch3MartyBlocks {
          * @type {object}
          * @private
          */
-        this._peripheral = new MartyPeripheral(this._runtime, Scratch3MartyBlocks.EXTENSION_ID);
-
-        /**
-         * Language code of the viewer, based on their locale.
-         * @type {string}
-         * @private
-         */
-        this._viewerLanguageCode = this.getViewerLanguageCode();
-
-        /**
-         * List of supported language name and language code pairs, for use in the block menu.
-         * @type {Array.<object.<string, string>>}
-         * @private
-         */
-        this._supportedLanguages = languageNames.menuMap[this._viewerLanguageCode].map(entry => {
-            const obj = {text: entry.name, value: entry.code};
-            return obj;
-        });
+        this._peripheral = undefined;//new MartyPeripheral(this._runtime, Scratch3MartyBlocks.EXTENSION_ID);
 
         this._blockingMode = true;
 
@@ -331,22 +329,20 @@ class Scratch3MartyBlocks {
      * The key to load & store a target's translate state.
      * @return {string} The key.
      */
-    static get STATE_KEY () {
-        return 'Scratch.marty';
-    }
+    //static get STATE_KEY () {
+    //    return 'Scratch.marty';
+    //}
     
     /**
      * @returns {object} metadata for this extension and its blocks.
      */
     getInfo () {
         return {
-            id: 'marty',
-            name: formatMessage({
-                id: 'marty.categoryName',
-                default: 'Marty the Robot',
-                description: 'Name of extension that adds Marty the Robot blocks'
-            }),
+            id: Scratch3MartyBlocks.EXTENSION_ID,
+            name: Scratch3MartyBlocks.EXTENSION_NAME,
             blockIconURI: blockIconURI,
+            menuIconURI: menuIconURI,
+            docsURI: 'http://docs.robotical.io',
             showStatusButton: true,
             /* See https://github.com/LLK/scratch-vm/wiki/Scratch-3.0-Extensions-Specification */
             /* Note that the above is out-of-date on some members. */
@@ -780,24 +776,23 @@ class Scratch3MartyBlocks {
                 },
             ],
             menus: {
-                languages: this._supportedLanguages,
-                leg: ['left', 'right'],
-                turn_directions: ['left', 'right'],
-                directions: ['left', 'right', 'forward', 'backward'],
-                eyes: ['normal', 'wide', 'angry', 'excited'],
-                gpios: ['0', '1', '2', '3', '4', '5', '6', '7'],
-                motorCurrents: ['right hip', 'right twist', 'right knee',
-                                'left hip', 'left twist', 'left knee',
-                                'right arm', 'left arm'],
-                joints: ['right hip', 'right twist', 'right knee',
-                         'left hip', 'left twist', 'left knee',
-                         'right arm', 'left arm', 'eyes'],
-                accel: ['X axis', 'Y axis', 'Z axis'],
-                enabled: ['enabled', 'disabled'],
-                saggital: ['forward', 'backward'],
-                stopTypes: ['finish move', 'freeze',
-                            'disable motors', 'return to zero',
-                            'pause', 'pause and disable motors']
+                leg: this._formatMenu(['left', 'right']),
+                turn_directions: this._formatMenu(['left', 'right']),
+                directions: this._formatMenu(['left', 'right', 'forward', 'backward']),
+                eyes: this._formatMenu(['normal', 'wide', 'angry', 'excited']),
+                gpios: this._formatMenu(['0', '1', '2', '3', '4', '5', '6', '7']),
+                motorCurrents: this._formatMenu(['right hip', 'right twist', 'right knee',
+                                                 'left hip', 'left twist', 'left knee',
+                                                 'right arm', 'left arm']),
+                joints: this._formatMenu(['right hip', 'right twist', 'right knee',
+                                          'left hip', 'left twist', 'left knee',
+                                          'right arm', 'left arm', 'eyes']),
+                accel: this._formatMenu(['X axis', 'Y axis', 'Z axis']),
+                enabled: this._formatMenu(['enabled', 'disabled']),
+                saggital: this._formatMenu(['forward', 'backward']),
+                stopTypes: this._formatMenu(['finish move', 'freeze',
+                                             'disable motors', 'return to zero',
+                                             'pause', 'pause and disable motors'])
             },
         };
     }
@@ -809,7 +804,7 @@ class Scratch3MartyBlocks {
      **
      ****/
 
-    m_hello () {
+    m_hello (args) {
         this._peripheral.marty.hello(1);
         if (this._blockingMode)
             return new Promise((resolve) =>
@@ -821,11 +816,11 @@ class Scratch3MartyBlocks {
         this._peripheral.marty.stop(STOPTYPE);
     }
 
-    m_disable_motors () {
+    m_disable_motors (args) {
         this._peripheral.marty.disable_motors();
     }
 
-    m_enable_motors () {
+    m_enable_motors (args) {
         this._peripheral.marty.enable_motors();
     }
 
@@ -838,7 +833,7 @@ class Scratch3MartyBlocks {
 
     /* - - - */
 
-    m_wiggle () {
+    m_wiggle (args) {
         this._peripheral.marty.celebrate(4000);
         if (this._blockingMode)
             return new Promise((resolve) =>
@@ -948,7 +943,7 @@ class Scratch3MartyBlocks {
                 setTimeout(resolve, 750));
     }
 
-    m_lower_leg () {
+    m_lower_leg (args) {
         var left_knee = this._peripheral.marty.get_sensor("mp" + this.jointID['left knee']);
         var right_knee = this._peripheral.marty.get_sensor("mp" + this.jointID['right knee']);
         /* if (left_knee === null || right_knee === null){
@@ -991,7 +986,7 @@ class Scratch3MartyBlocks {
 
     /* - - - */
 
-    m_get_batt () {
+    m_get_batt (args) {
         /* TODO often returns null */
         return this._peripheral.marty.get_sensor("battery");
     }
@@ -1031,64 +1026,34 @@ class Scratch3MartyBlocks {
     }
 
     
-    /** * * * * * * * * * * **/
-
-    
     /**
-     * Get the human readable language value for the reporter block.
-     * @return {string} the language name of the project viewer.
+     * Formats menus into a format suitable for block menus, and loading previously
+     * saved projects:
+     * [
+     *   {
+     *    text: label,
+     *    value: index
+     *   },
+     *   {
+     *    text: label,
+     *    value: index
+     *   },
+     *   etc...
+     * ]
+     *
+     * @param {array} menu - a menu to format.
+     * @return {object} - a formatted menu as an object.
+     * @private
      */
-    getViewerLanguage () {
-        this._viewerLanguageCode = this.getViewerLanguageCode();
-        const names = languageNames.menuMap[this._viewerLanguageCode];
-        const langNameObj = names.find(obj => obj.code === this._viewerLanguageCode);
-        let langName = this._viewerLanguageCode;
-        if (langNameObj) {
-            langName = langNameObj.name;
+    _formatMenu (menu) {
+        const m = [];
+        for (let i = 0; i < menu.length; i++) {
+            const obj = {};
+            obj.text = menu[i];
+            obj.value = i.toString();
+            m.push(obj);
         }
-        return langName;
-    }
-
-    /**
-     * Get the viewer's language code.
-     * @return {string} the language code.
-     */
-    getViewerLanguageCode () {
-        const locale = formatMessage.setup().locale;
-        const viewerLanguages = [locale].concat(navigator.languages);
-        const languageKeys = Object.keys(languageNames.menuMap);
-        // Return the first entry in viewerLanguages that matches
-        // one of the available language keys.
-        const languageCode = viewerLanguages.reduce((acc, lang) => {
-            if (acc) {
-                return acc;
-            }
-            if (languageKeys.indexOf(lang) > -1) {
-                return lang;
-            }
-            return acc;
-        }, '') || 'en';
-        return languageCode;
-    }
-
-    /**
-     * Get a language code from a block argument. The arg can be a language code
-     * or a language name, written in any language.
-     * @param  {object} arg A block argument.
-     * @return {string} A language code.
-     */
-    getLanguageCodeFromArg (arg) {
-        const languageArg = Cast.toString(arg).toLowerCase();
-        // Check if the arg matches a language code in the menu.
-        if (languageNames.menuMap.hasOwnProperty(languageArg)) {
-            return languageArg;
-        }
-        // Check for a dropped-in language name, and convert to a language code.
-        if (languageNames.nameMap.hasOwnProperty(languageArg)) {
-            return languageNames.nameMap[languageArg];
-        }
-        // Default to English.
-        return 'en';
+        return m;
     }
 
 }
