@@ -646,7 +646,7 @@ class Scratch3MartyBlocks {
                     text: formatMessage({
                         id: 'marty.liftLegBlock',
                         default: 'lift [LEG] leg',
-                        description: 'Leg liftblock'
+                        description: 'Leg lift block'
                     }),
                     blockType: BlockType.COMMAND,
                     arguments: {
