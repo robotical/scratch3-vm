@@ -270,6 +270,10 @@ class MartyPeripheral {
     }
 
 
+    /**
+     * Called by the runtime when user wants to connect to a specific peripheral.
+     * TODO this won't fail properly, and always shows 'connected'
+     */
     manual_connect () {
     	var id = prompt('Please enter Marty\'s IP Address');
         
