@@ -23,8 +23,6 @@ const formatMessage = require('format-message');
 const Marty = require('./marty');
 
 
-
-
 // ----------------------------
 // local IP discovery tool from net.ipcalf.com
 
@@ -137,6 +135,7 @@ class MartyPeripheral {
 
         console.log('in marty constructor');
         // check for arguments with martyIP
+        // TODO use for something more clever than this (use whole IP rather than subnet)
         var params = getQueryParams(location.search);
         if (params['marty_ip'] != null){
         	this._localIp = params['marty_ip'].split('.').slice(0, -1).join('.');
@@ -334,6 +333,60 @@ class MartyPeripheral {
 
 }
 
+const MartyCoronalMenu = [
+    'left', 'right'
+];
+const MartySaggitalMenu = [
+    'forward', 'backward'
+];
+const MartyTransverseMenu = [
+    'left', 'right', 'forward', 'backward'
+];
+const MartyEyesMenu = [
+    'normal', 'wide', 'angry', 'excited'
+];
+const MartyGPIOMenu = [
+    '0', '1', '2', '3', '4', '5', '6', '7'
+];
+const MartyMotorCurrentsMenu = [
+    'right hip', 'right twist', 'right knee',
+    'left hip', 'left twist', 'left knee',
+    'right arm', 'left arm'
+];
+const MartyJointsMenu = [
+    'right hip', 'right twist', 'right knee',
+    'left hip', 'left twist', 'left knee',
+    'right arm', 'left arm', 'eyes'
+];
+const MartyAccelMenu = [
+    'X axis', 'Y axis', 'Z axis'
+];
+const MartyEnabledMenu = [
+    'enabled', 'disabled'
+];
+const MartyStopTypesMenu = [
+    'finish move', 'freeze',
+    'disable motors', 'return to zero',
+    'pause', 'pause and disable motors'
+];
+/*
+   0	Clear movement queue only (so finish the current step/wiggle/movement)
+   1	Clear movement queue and servo queues (freeze where you are)
+   2	Clear everything and disable motors
+   3	Clear everything, and make robot return to zero
+   4	Pause, but keep servo and movequeue intact and motors enabled
+   5	As 4, but disable motors too
+ */
+const MartyStopMap = {
+    'finish move': 0,
+    'freeze': 1,
+    'disable motors': 2,
+    'return to zero': 3,
+    'pause': 4,
+    'pause and disable motors': 5,
+};
+
+
 /**
  * Class for the translate block in Scratch 3.0.
  * @constructor
@@ -436,7 +489,7 @@ class Scratch3MartyBlocks {
                         STOPTYPE: {
                             type: ArgumentType.STRING,
                             menu: 'stopTypes',
-                            defaultValue: 'freeze',
+                            defaultValue: MartyStopTypesMenu.indexOf('freeze'),
                         }
                     }
                 },
@@ -494,8 +547,8 @@ class Scratch3MartyBlocks {
                     arguments: {
                         DIRECTION: {
                             type: ArgumentType.STRING,
-                            defaultValue: 'left',
                             menu: 'turn_directions',
+                            defaultValue: MartyCoronalMenu.indexOf('left'),
                         },
                         MOVETIME: {
                             type: ArgumentType.NUMBER,
@@ -596,7 +649,7 @@ class Scratch3MartyBlocks {
                         SIDE: {
                             type: ArgumentType.STRING,
                             menu: 'turn_directions',
-                            defaultValue: 'left',
+                            defaultValue: MartyCoronalMenu.indexOf('left'),
                         },
                     }
                 },
@@ -612,7 +665,7 @@ class Scratch3MartyBlocks {
                         DIRECTION: {
                             type: ArgumentType.STRING,
                             menu: 'turn_directions',
-                            defaultValue: 'left',
+                            defaultValue: MartyCoronalMenu.indexOf('left'),
                         },
                         NUMSTEPS: {
                             type: ArgumentType.NUMBER,
@@ -632,7 +685,7 @@ class Scratch3MartyBlocks {
                         SIDE: {
                             type: ArgumentType.STRING,
                             menu: 'turn_directions',
-                            defaultValue: 'left',
+                            defaultValue: MartyCoronalMenu.indexOf('left'),
                         },
                         MOVETIME: {
                             type: ArgumentType.NUMBER,
@@ -656,7 +709,7 @@ class Scratch3MartyBlocks {
                         SIDE: {
                             type: ArgumentType.STRING,
                             menu: 'turn_directions',
-                            defaultValue: 'left',
+                            defaultValue: MartyCoronalMenu.indexOf('left'),
                         },
                         NUMSTEPS: {
                             type: ArgumentType.NUMBER,
@@ -681,7 +734,7 @@ class Scratch3MartyBlocks {
                         EYES: {
                             type: ArgumentType.STRING,
                             menu: 'eyes',
-                            defaultValue: 'excited',
+                            defaultValue: MartyEyesMenu.indexOf('excited'),
                         },
                     }
                 },
@@ -697,12 +750,12 @@ class Scratch3MartyBlocks {
                         LEG: {
                             type: ArgumentType.STRING,
                             menu: 'leg',
-                            defaultValue: 'left',
+                            defaultValue: MartyCoronalMenu.indexOf('left'),
                         },
                         DIRECTION: {
                             type: ArgumentType.STRING,
                             menu: 'saggital',
-                            defaultValue: 'forward',
+                            defaultValue: MartySaggitalMenu.indexOf('forward'),
                         }
                     }
                 },
@@ -710,15 +763,15 @@ class Scratch3MartyBlocks {
                     opcode: 'm_lift_leg',
                     text: formatMessage({
                         id: 'marty.liftLegBlock',
-                        default: 'lift [LEG] leg',
-                        description: 'Leg lift block'
+                        default: 'lift [LEG] foot',
+                        description: 'Foot lift block'
                     }),
                     blockType: BlockType.COMMAND,
                     arguments: {
                         LEG: {
                             type: ArgumentType.STRING,
                             menu: 'leg',
-                            defaultValue: 'left',
+                            defaultValue: MartyCoronalMenu.indexOf('left'),
                         },
                     }
                 },
@@ -743,7 +796,7 @@ class Scratch3MartyBlocks {
                         JOINT: {
                             type: ArgumentType.STRING,
                             menu: 'joints',
-                            defaultValue: 'right arm',
+                            defaultValue: MartyJointsMenu.indexOf('right arm'),
                         },
                         POSITION: {
                             type: ArgumentType.NUMBER,
@@ -777,7 +830,7 @@ class Scratch3MartyBlocks {
                         GPIO: {
                             type: ArgumentType.STRING,
                             menu: 'gpios',
-                            defaultValue: '0',
+                            defaultValue: MartyGPIOMenu.indexOf('0'),
                         },
                     }
                 },
@@ -793,7 +846,7 @@ class Scratch3MartyBlocks {
                         MOTOR: {
                             type: ArgumentType.STRING,
                             menu: 'motorCurrents',
-                            defaultValue: 'right arm',
+                            defaultValue: MartyMotorCurrentsMenu.indexOf('right arm'),
                         },
                     }
                 },
@@ -809,7 +862,7 @@ class Scratch3MartyBlocks {
                         AXIS: {
                             type: ArgumentType.STRING,
                             menu: 'accel',
-                            defaultValue: 'X axis',
+                            defaultValue: MartyAccelMenu.indexOf('X axis'),
                         },
                     }
                 },
@@ -835,34 +888,27 @@ class Scratch3MartyBlocks {
                         BLOCK: {
                             type: ArgumentType.STRING,
                             menu: 'enabled',
-                            defaultValue: 'enabled',
+                            defaultValue: MartyEnabledMenu.indexOf('enabled'),
                         },
                     }
                 },
             ],
             
             menus: {
-                leg: this._formatMenu(['left', 'right']),
-                turn_directions: this._formatMenu(['left', 'right']),
-                directions: this._formatMenu(['left', 'right', 'forward', 'backward']),
-                eyes: this._formatMenu(['normal', 'wide', 'angry', 'excited']),
-                gpios: this._formatMenu(['0', '1', '2', '3', '4', '5', '6', '7']),
-                motorCurrents: this._formatMenu(['right hip', 'right twist', 'right knee',
-                                                 'left hip', 'left twist', 'left knee',
-                                                 'right arm', 'left arm']),
-                joints: this._formatMenu(['right hip', 'right twist', 'right knee',
-                                          'left hip', 'left twist', 'left knee',
-                                          'right arm', 'left arm', 'eyes']),
-                accel: this._formatMenu(['X axis', 'Y axis', 'Z axis']),
-                enabled: this._formatMenu(['enabled', 'disabled']),
-                saggital: this._formatMenu(['forward', 'backward']),
-                stopTypes: this._formatMenu(['finish move', 'freeze',
-                                             'disable motors', 'return to zero',
-                                             'pause', 'pause and disable motors'])
+                leg: this._formatMenu(MartyCoronalMenu),
+                turn_directions: this._formatMenu(MartyCoronalMenu),
+                directions: this._formatMenu(MartyTransverseMenu),
+                eyes: this._formatMenu(MartyEyesMenu),
+                gpios: this._formatMenu(MartyGPIOMenu),
+                motorCurrents: this._formatMenu(MartyMotorCurrentsMenu),
+                joints: this._formatMenu(MartyJointsMenu),
+                accel: this._formatMenu(MartyAccelMenu),
+                enabled: this._formatMenu(MartyEnabledMenu),
+                saggital: this._formatMenu(MartySaggitalMenu),
+                stopTypes: this._formatMenu(MartyStopTypesMenu)
             },
         };
     }
-
 
     /****
      **
@@ -878,7 +924,7 @@ class Scratch3MartyBlocks {
     }
 
     m_stop (args) {
-        STOPTYPE = 'freeze';
+        var STOPTYPE = MartyStopMap[MartyStopTypesMenu[args.STOPTYPE]];
         this._peripheral.marty.stop(STOPTYPE);
     }
 
@@ -907,7 +953,8 @@ class Scratch3MartyBlocks {
     }
 
     m_circle_dance (args) {
-        this._peripheral.marty.circle_dance(args.DIRECTION, parseFloat(args.MOVETIME)*1000);
+        var DIRECTION =  MartyCoronalMenu[args.DIRECTION];
+        this._peripheral.marty.circle_dance(DIRECTION, parseFloat(args.MOVETIME)*1000);
         if (this._blockingMode)
             return new Promise((resolve) =>
                 setTimeout(resolve, parseFloat(args.MOVETIME)*1000));
@@ -949,15 +996,17 @@ class Scratch3MartyBlocks {
     }
 
     m_kick (args) {
-        this._peripheral.marty.kick(args.SIDE, 0, 2000);
+        var SIDE = MartyCoronalMenu[args.SIDE];
+        this._peripheral.marty.kick(SIDE, 0, 2000);
         if (this._blockingMode)
             return new Promise((resolve) =>
                 setTimeout(resolve, 2000));
     }
 
     m_turn (args) {
+        var DIRECTION = MartyCoronalMenu[args.DIRECTION];
         var turn = 80;
-        if (args.DIRECTION == "right" ){
+        if (DIRECTION == "right" ){
             turn = -80;
         }
         this._peripheral.marty.walk(parseInt(args.NUMSTEPS), turn, 1300, 0);
@@ -967,37 +1016,41 @@ class Scratch3MartyBlocks {
     }
 
     m_lean (args) {
-        this._peripheral.marty.lean(args.SIDE, 60, parseFloat(args.MOVETIME)*1000);
+        var SIDE = MartyCoronalMenu[args.SIDE];
+        this._peripheral.marty.lean(SIDE, 60, parseFloat(args.MOVETIME)*1000);
         if (this._blockingMode)
             return new Promise((resolve) =>
                 setTimeout(resolve, parseFloat(args.MOVETIME)*1000));
     }
 
     m_sidestep (args) {
-        this._peripheral.marty.sidestep(args.SIDE,
+        var SIDE = MartyCoronalMenu[args.SIDE];
+        this._peripheral.marty.sidestep(SIDE,
                                         parseInt(args.NUMSTEPS),
                                         parseFloat(args.MOVETIME)*1000,
                                         parseInt(args.STEPLEN));
         if (this._blockingMode)
             return new Promise((resolve) =>
-                setTimeout(resolve, parseFloat(args.MOVETIME)* 1000 * parseInt(args.NUMSTEPS)));
+                setTimeout(resolve, parseFloat(args.MOVETIME) * 1000 * parseInt(args.NUMSTEPS)));
     }
 
     /* - - - */
 
     m_eyes (args) {
+        var EYES = MartyEyesMenu[args.EYES];
         var eyepos = [];
         eyepos['normal'] = 0; eyepos['angry'] = 50; eyepos['excited'] = -25; eyepos['wide'] = -100;
-        this._peripheral.marty.move_joint(8, eyepos[args.EYES], 100);
+        this._peripheral.marty.move_joint(8, eyepos[EYES], 100);
         if (this._blockingMode)
             return new Promise((resolve) =>
                 setTimeout(resolve, 100));
     }
 
     m_lift_leg (args) {
+        var LEG = MartyCoronalMenu[args.LEG];
         var joint;
         var mult = 1;
-        if (args.LEG == 'left'){
+        if (LEG == 'left'){
             joint = 'left knee';
             mult = -1;
         } else {
@@ -1027,14 +1080,16 @@ class Scratch3MartyBlocks {
     }
 
     m_move_leg (args) {
+        var LEG = MartyCoronalMenu[args.LEG];
+        var DIRECTION = MartySaggitalMenu[args.DIRECTION];
         var joint;
         var mult = 1;
-        if (args.LEG == 'left'){
+        if (LEG == 'left'){
             joint = 'left hip';
         } else {
             joint = 'right hip';
         }
-        if (args.DIRECTION == 'forward'){mult = -1};
+        if (DIRECTION == 'forward'){mult = -1};
         this._peripheral.marty.move_joint(this.jointID[joint], 30*mult, 750);
         if (this._blockingMode)
             return new Promise((resolve) =>
@@ -1042,7 +1097,8 @@ class Scratch3MartyBlocks {
     }
 
     m_move_joint (args) {
-        this._peripheral.marty.move_joint(this.jointID[args.JOINT],
+        var JOINT = MartyJointsMenu[args.JOINT];
+        this._peripheral.marty.move_joint(this.jointID[JOINT],
                                           args.POSITION,
                                           parseFloat(args.MOVETIME)*1000);
         if (this._blockingMode)
@@ -1059,16 +1115,19 @@ class Scratch3MartyBlocks {
 
     m_get_gpio (args) {
         /* TODO often returns null */
-        return this._peripheral.marty.get_sensor("gpio" + args.GPIO);
+        var GPIO = MartyGPIOMenu[args.GPIO];
+        return this._peripheral.marty.get_sensor("gpio" + GPIO);
     }
 
     m_get_motor_current (args) {
         /* TODO often returns null */
-        return this._peripheral.marty.get_sensor("mc" + this.jointID[args.MOTOR]);
+        var MOTOR = MartyMotorCurrentsMenu[args.MOTOR];
+        return this._peripheral.marty.get_sensor("mc" + this.jointID[MOTOR]);
     }
 
     m_get_accel (args) {
         /* TODO often returns null */
+        var AXIS = MartyAccelMenu[args.AXIS];
         var axisID = [];
         axisID['X axis'] = 0; axisID['Y axis'] = 1; axisID['Z axis'] = 2;
         return this._peripheral.marty.get_sensor("acc" + axisID[args.AXIS]);
@@ -1083,12 +1142,13 @@ class Scratch3MartyBlocks {
     /* - - - */
 
     m_set_blocking(args) {
-        if (args.BLOCK == 'enabled') {
+        var BLOCK = MartyEnabledMenu[args.BLOCK];
+        if (BLOCK == 'enabled') {
             this._blockingMode = true;
         } else {
             this._blockingMode = false;
         }
-        console.log('Setting Marty blocking to ' + args.BLOCK + ' (' + this._blockingMode + ')');
+        console.log('Setting Marty blocking to ' + BLOCK + ' (' + this._blockingMode + ')');
     }
 
     
