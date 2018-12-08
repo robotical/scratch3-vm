@@ -114,9 +114,12 @@ class MartyPeripheral {
         this._runtime.registerPeripheralExtension(extensionId, this);
 
         this._availablePeripherals = [];
+        this._CHresp = null;
 
-        this._scanTimeout = 20000;
+        this._scanTimeout = 2500;
         this._onScanTimeout = null;
+
+        this._connectingInterval = null;
 
         /**
          * Local IP/Subnet state variables
@@ -171,10 +174,59 @@ class MartyPeripheral {
 
         // if there is an
         if (~this._onScanTimeout){
-            this._scanRange(this._localIp);
+        	// first try to retrieve json list of Martys from command hub scanner, if that fails fall back to ip scanning
+    	    fetch("/cgi-bin/list-martys")
+    	    //fetch("/static/list-martys.json")
+		        .then(response => {
+		            if (response.ok){return response.json()} else {
+		            	resp = response;
+		            	console.warn("er #1 Could not load list of Martys from command hub. Switching to old school IP Scan", response.ok);
+		            	// the catch below will initiate the IP scan
+		            	//this._scanTimeout = 20000;
+		            	//this._scanRange(this._localIp);
+		            }})
+		        .then(jsonResponse => this._parseCHMartyList(jsonResponse.martys))
+		        .catch(err => {
+		        	this._scanTimeout = 20000;
+		            console.warn("er #2 Could not load list of Martys from command hub. Switching to old school IP Scan", err);           
+		            this._scanRange(this._localIp);
+			    });
+		            
             this._onScanTimeout = window.setTimeout(this._sendDiscoverTimeout, this._scanTimeout);
         }
     }
+
+    // paese a JSON list of Martys received from the command hub
+	_parseCHMartyList(martys){
+	    this._CHresp = martys;
+	    for (m in martys){
+	        console.log(martys[m].ip);
+	        this._sendRequest(martys[m].ip);
+	    }
+	    setTimeout(this._checkCHResults, this._scanTimeout, this);
+	}
+
+	// last check of received Martys. If a Matry hasn't replied in time just list it by IP
+	_checkCHResults(context){
+	    if (context._availablePeripherals.length != context._CHresp.length){
+	        // we didn't resolve all the Marty names. Add the others just by IP
+	        for (m in context._CHresp){
+	            var found = false;
+	            for (ml in context._availablePeripherals){
+	                if (context._availablePeripherals[ml].peripheralId == context._CHresp[m].ip){found = true;}
+	            }
+	            if (!found){
+            	    context._availablePeripherals.push({
+                        name: context._CHresp[m].ip,
+                        rssi: -100+context._CHresp[m].SNR, // TODO: Better RSSI representation? (dB)
+                        peripheralId: context._CHresp[m].ip
+                    });
+                    context._pushPeripheralList();
+	            }
+	        }
+
+	    }
+	}
 
 
     _sendRequest (requestIp) {
@@ -188,9 +240,20 @@ class MartyPeripheral {
 
                     if (magic_signature == "AA") {
                         console.log("Found a Marty called " + marty_name + "!");
+                        var rssi = -10;
+                        if (this._CHresp != null){
+                        	console.log("looking for real SNR");
+                        	for (m in this._CHresp){
+                        		if (this._CHresp[m].ip == requestIp){
+                        			console.log("SNR: " + this._CHresp[m].SNR);
+                        			rssi = -100+this._CHresp[m].SNR;
+                        			
+                        		}
+                        	}
+                        }
                         this._availablePeripherals.push({
                             name: marty_name,
-                            rssi: -10, // TODO: Better RSSI representation? (dB)
+                            rssi: rssi, // TODO: Better RSSI representation? (dB)
                             peripheralId: requestIp
                         });
                         this._pushPeripheralList();
@@ -216,6 +279,7 @@ class MartyPeripheral {
     }
 
     _scanRange (ip) {
+    	console.log("gonna scan" + ip);
         for (var i = 1; i < 255; i++) {
             this._sendRequest(ip + "." + i);
         }             
@@ -243,8 +307,14 @@ class MartyPeripheral {
      * Called to tell the runtime that we connected successfully
      * TODO check if connection was actually successful and do something if not
      */
-    _setConnected(runtime){
-    	runtime.emit(runtime.constructor.PERIPHERAL_CONNECTED);
+    _setConnected(context){
+    	//if (!this.marty){console.log("NO MARTY DEFINED"); return;}
+    	console.log("marty alive: " + context.marty.alive);
+    	if (context.marty.alive){
+    		console.log("successfully connected to Marty!");
+    		context._runtime.emit(context._runtime.constructor.PERIPHERAL_CONNECTED);
+    		clearInterval(context._connectingInterval);
+    	}
     }
 
     /**
@@ -263,7 +333,8 @@ class MartyPeripheral {
 
         console.log("Connecting to Marty "+ id);
         //this._runtime.emit(this._runtime.constructor.PERIPHERAL_CONNECTED);
-        setTimeout(this._setConnected, 500, this._runtime);
+        var that = this;
+        this._connectingInterval = setInterval(this._setConnected, 500, that);
         
         this.marty = new Marty(id, 'Marty the Robot'); // TODO get real name
     }
@@ -278,7 +349,7 @@ class MartyPeripheral {
         
         console.log("Connecting to Marty "+ id);
         //this._runtime.emit(this._runtime.constructor.PERIPHERAL_CONNECTED);
-        setTimeout(this._setConnected, 500, this._runtime);
+        this._connectingInterval = setInterval(this._setConnected, 500, this._runtime);
         
         this.marty = new Marty(id, 'Marty the Robot'); // TODO get real name
     }
@@ -289,6 +360,7 @@ class MartyPeripheral {
      */
     disconnect () {
         console.warn("Marty scratch blocks Disconnect hit");
+        if (this._connectingInterval){clearInterval(this._connectingInterval);}
         this.marty = null;
     }
 
@@ -300,7 +372,7 @@ class MartyPeripheral {
     isConnected () {
         let connected = false;
         if (this.marty) {
-            connected = true;
+            connected = this.marty.alive;
             //connected = thismarty.isConnected(); // TODO isConnected deosn't exist in Marty
         }
         return connected;
