@@ -176,7 +176,7 @@ class MartyPeripheral {
         if (~this._onScanTimeout){
         	// first try to retrieve json list of Martys from command hub scanner, if that fails fall back to ip scanning
     	    fetch("/cgi-bin/list-martys")
-    	    //fetch("/static/list-martys.json")
+    	    //fetch("/static/list-martys.json") // dummy file for debugging
 		        .then(response => {
 		            if (response.ok){return response.json()} else {
 		            	resp = response;
@@ -749,15 +749,15 @@ class Scratch3MartyBlocks {
                     opcode: 'm_lean',
                     text: formatMessage({
                         id: 'marty.leanBlock',
-                        default: 'lean to the [SIDE] in [MOVETIME]s',
+                        default: 'lean [SIDE] in [MOVETIME]s',
                         description: 'Leaning block'
                     }),
                     blockType: BlockType.COMMAND,
                     arguments: {
                         SIDE: {
                             type: ArgumentType.STRING,
-                            menu: 'turn_directions',
-                            defaultValue: MartyCoronalMenu.indexOf('left'),
+                            menu: 'directions',
+                            defaultValue: MartyTransverseMenu.indexOf('left'),
                         },
                         MOVETIME: {
                             type: ArgumentType.NUMBER,
@@ -1088,7 +1088,7 @@ class Scratch3MartyBlocks {
     }
 
     m_lean (args) {
-        var SIDE = MartyCoronalMenu[args.SIDE];
+        var SIDE = MartyTransverseMenu[args.SIDE];
         this._peripheral.marty.lean(SIDE, 60, parseFloat(args.MOVETIME)*1000);
         if (this._blockingMode)
             return new Promise((resolve) =>
@@ -1206,8 +1206,22 @@ class Scratch3MartyBlocks {
     }
 
     m_get_prox (args) {
-        /* TODO often returns null */
-        return this._peripheral.marty.get_sensor("prox");
+        var reading = this._peripheral.marty.get_sensor("prox");
+        console.log("prox reading: " + reading);
+        if (reading == null){
+    		return null;
+    		// TODO: this will always return null the first time it's called after a delay, so normally we should just ping it again
+    		// after a short delay to let the marty library read from the control board
+    		// however, if there's no distance sensor plugged in this will always return null, so we need to timeout to prevent looping and hanging.
+    		//return new Promise((resolve) => setTimeout(m_get_prox, 50));
+        } else if (reading > 0.025){
+        	return Math.round(Math.pow((reading/10.3221),-0.7616));
+        } else if (reading > 0.005){
+        	return Math.round(Math.pow((reading/33.58069),-0.63808));
+        } else {
+        	return Math.round(Math.pow((reading/39.8079),-0.61874));
+        }
+        
     }
 
 
