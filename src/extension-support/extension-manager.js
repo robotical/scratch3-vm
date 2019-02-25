@@ -17,6 +17,11 @@ const Scratch3VideoSensingBlocks = require('../extensions/scratch3_video_sensing
 const Scratch3Speech2TextBlocks = require('../extensions/scratch3_speech2text');
 const Scratch3Ev3Blocks = require('../extensions/scratch3_ev3');
 const Scratch3MartyBlocks = require('../extensions/scratch3_marty');
+const Scratch3MakeyMakeyBlocks = require('../extensions/scratch3_makeymakey');
+// todo: only load this extension once we have a compatible way to load its
+// Vernier module dependency.
+// const Scratch3GdxForBlocks = require('../extensions/scratch3_gdx_for');
+
 
 const builtinExtensions = {
     pen: Scratch3PenBlocks,
@@ -28,7 +33,9 @@ const builtinExtensions = {
     videoSensing: Scratch3VideoSensingBlocks,
     speech2text: Scratch3Speech2TextBlocks,
     ev3: Scratch3Ev3Blocks,
-    marty: Scratch3MartyBlocks
+    marty: Scratch3MartyBlocks,
+    makeymakey: Scratch3MakeyMakeyBlocks
+    // gdxfor: Scratch3GdxForBlocks
 };
 
 /**
@@ -316,13 +323,17 @@ class ExtensionManager {
         const menuItems = menuFunc.call(extensionObject, editingTargetID).map(
             item => {
                 item = maybeFormatMessage(item, extensionMessageContext);
-                if (typeof item === 'object') {
+                switch (typeof item) {
+                case 'object':
                     return [
                         maybeFormatMessage(item.text, extensionMessageContext),
                         item.value
                     ];
+                case 'string':
+                    return [item, item];
+                default:
+                    return item;
                 }
-                return item;
             });
 
         if (!menuItems || menuItems.length < 1) {
