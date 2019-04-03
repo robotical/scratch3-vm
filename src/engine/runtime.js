@@ -7,6 +7,7 @@ const Blocks = require('./blocks');
 const BlockType = require('../extension-support/block-type');
 const Profiler = require('./profiler');
 const Sequencer = require('./sequencer');
+const execute = require('./execute.js');
 const ScratchBlocksConstants = require('./scratch-blocks-constants');
 const TargetType = require('../extension-support/target-type');
 const Thread = require('./thread');
@@ -316,7 +317,7 @@ class Runtime extends EventEmitter {
         // I/O related data.
         /** @type {Object.<string, Object>} */
         this.ioDevices = {
-            clock: new Clock(),
+            clock: new Clock(this),
             cloud: new Cloud(this),
             keyboard: new Keyboard(this),
             mouse: new Mouse(this),
@@ -906,12 +907,12 @@ class Runtime extends EventEmitter {
             options = menuItems.map(item => {
                 const formattedItem = maybeFormatMessage(item, extensionMessageContext);
                 switch (typeof formattedItem) {
-                    case 'string':
-                        return [formattedItem, formattedItem];
-                    case 'object':
-                        return [maybeFormatMessage(item.text, extensionMessageContext), item.value];
-                    default:
-                        throw new Error(`Can't interpret menu item: ${JSON.stringify(item)}`);
+                case 'string':
+                    return [formattedItem, formattedItem];
+                case 'object':
+                    return [maybeFormatMessage(item.text, extensionMessageContext), item.value];
+                default:
+                    throw new Error(`Can't interpret menu item: ${JSON.stringify(item)}`);
                 }
             });
         }
@@ -1039,39 +1040,39 @@ class Runtime extends EventEmitter {
         }
 
         switch (blockInfo.blockType) {
-            case BlockType.COMMAND:
-                blockJSON.outputShape = ScratchBlocksConstants.OUTPUT_SHAPE_SQUARE;
-                blockJSON.previousStatement = null; // null = available connection; undefined = hat
-                if (!blockInfo.isTerminal) {
-                    blockJSON.nextStatement = null; // null = available connection; undefined = terminal
-                }
-                break;
-            case BlockType.REPORTER:
-                blockJSON.output = 'String'; // TODO: distinguish number & string here?
-                blockJSON.outputShape = ScratchBlocksConstants.OUTPUT_SHAPE_ROUND;
-                break;
-            case BlockType.BOOLEAN:
-                blockJSON.output = 'Boolean';
-                blockJSON.outputShape = ScratchBlocksConstants.OUTPUT_SHAPE_HEXAGONAL;
-                break;
-            case BlockType.HAT:
-            case BlockType.EVENT:
-                if (!blockInfo.hasOwnProperty('isEdgeActivated')) {
-                    // if absent, this property defaults to true
-                    blockInfo.isEdgeActivated = true;
-                }
-                blockJSON.outputShape = ScratchBlocksConstants.OUTPUT_SHAPE_SQUARE;
+        case BlockType.COMMAND:
+            blockJSON.outputShape = ScratchBlocksConstants.OUTPUT_SHAPE_SQUARE;
+            blockJSON.previousStatement = null; // null = available connection; undefined = hat
+            if (!blockInfo.isTerminal) {
                 blockJSON.nextStatement = null; // null = available connection; undefined = terminal
-                break;
-            case BlockType.CONDITIONAL:
-            case BlockType.LOOP:
-                blockInfo.branchCount = blockInfo.branchCount || 1;
-                blockJSON.outputShape = ScratchBlocksConstants.OUTPUT_SHAPE_SQUARE;
-                blockJSON.previousStatement = null; // null = available connection; undefined = hat
-                if (!blockInfo.isTerminal) {
-                    blockJSON.nextStatement = null; // null = available connection; undefined = terminal
-                }
-                break;
+            }
+            break;
+        case BlockType.REPORTER:
+            blockJSON.output = 'String'; // TODO: distinguish number & string here?
+            blockJSON.outputShape = ScratchBlocksConstants.OUTPUT_SHAPE_ROUND;
+            break;
+        case BlockType.BOOLEAN:
+            blockJSON.output = 'Boolean';
+            blockJSON.outputShape = ScratchBlocksConstants.OUTPUT_SHAPE_HEXAGONAL;
+            break;
+        case BlockType.HAT:
+        case BlockType.EVENT:
+            if (!blockInfo.hasOwnProperty('isEdgeActivated')) {
+                // if absent, this property defaults to true
+                blockInfo.isEdgeActivated = true;
+            }
+            blockJSON.outputShape = ScratchBlocksConstants.OUTPUT_SHAPE_SQUARE;
+            blockJSON.nextStatement = null; // null = available connection; undefined = terminal
+            break;
+        case BlockType.CONDITIONAL:
+        case BlockType.LOOP:
+            blockInfo.branchCount = blockInfo.branchCount || 1;
+            blockJSON.outputShape = ScratchBlocksConstants.OUTPUT_SHAPE_SQUARE;
+            blockJSON.previousStatement = null; // null = available connection; undefined = hat
+            if (!blockInfo.isTerminal) {
+                blockJSON.nextStatement = null; // null = available connection; undefined = terminal
+            }
+            break;
         }
 
         const blockText = Array.isArray(blockInfo.text) ? blockInfo.text : [blockInfo.text];
@@ -1169,8 +1170,8 @@ class Runtime extends EventEmitter {
         }
 
         const shadowType = (argInfo.menu ?
-                            this._makeExtensionMenuId(argInfo.menu, context.categoryInfo.id) :
-                            argTypeInfo.shadowType);
+            this._makeExtensionMenuId(argInfo.menu, context.categoryInfo.id) :
+            argTypeInfo.shadowType);
         const fieldType = argInfo.menu || argTypeInfo.fieldType;
 
         // <value> is the ScratchBlocks name for a block input.
@@ -1220,7 +1221,7 @@ class Runtime extends EventEmitter {
                 menuIconURI = categoryInfo.blockIconURI;
             }
             const menuIconXML = menuIconURI ?
-                                `iconURI="${menuIconURI}"` : '';
+                `iconURI="${menuIconURI}"` : '';
 
             let statusButtonXML = '';
             if (categoryInfo.showStatusButton) {
@@ -1260,20 +1261,6 @@ class Runtime extends EventEmitter {
     scanForPeripheral (extensionId) {
         if (this.peripheralExtensions[extensionId]) {
             this.peripheralExtensions[extensionId].scan();
-        } else {
-            console.error('Could not find a registered extension ' + extensionId);
-        }
-    }
-
-    /**
-     * Tell the specified extension to scan for a peripheral.
-     * @param {string} extensionId - the id of the extension.
-     */
-    manualAddPeripheral (extensionId) {
-        if (this.peripheralExtensions[extensionId]) {
-            this.peripheralExtensions[extensionId].add();
-        } else {
-            console.error('Could not find a registered extension ' + extensionId);
         }
     }
 
@@ -1344,7 +1331,7 @@ class Runtime extends EventEmitter {
      */
     getIsEdgeActivatedHat (opcode) {
         return this._hats.hasOwnProperty(opcode) &&
-               this._hats[opcode].edgeActivated;
+            this._hats[opcode].edgeActivated;
     }
 
 
@@ -1413,8 +1400,8 @@ class Runtime extends EventEmitter {
         thread.stackClick = opts.stackClick;
         thread.updateMonitor = opts.updateMonitor;
         thread.blockContainer = opts.updateMonitor ?
-                                this.monitorBlocks :
-                                target.blocks;
+            this.monitorBlocks :
+            target.blocks;
 
         thread.pushStack(id);
         this.threads.push(thread);
@@ -1524,7 +1511,7 @@ class Runtime extends EventEmitter {
         for (let i = 0; i < this.threads.length; i++) {
             // Don't re-add the script if it's already running
             if (this.threads[i].topBlock === topBlockId && this.threads[i].status !== Thread.STATUS_DONE &&
-                this.threads[i].updateMonitor) {
+                    this.threads[i].updateMonitor) {
                 return;
             }
         }
@@ -1563,13 +1550,15 @@ class Runtime extends EventEmitter {
      * @return {Array.<Thread>} List of threads started by this function.
      */
     startHats (requestedHatOpcode,
-               optMatchFields, optTarget) {
+        optMatchFields, optTarget) {
         if (!this._hats.hasOwnProperty(requestedHatOpcode)) {
             // No known hat with this opcode.
             return;
         }
         const instance = this;
         const newThreads = [];
+        // Look up metadata for the relevant hat.
+        const hatMeta = instance._hats[requestedHatOpcode];
 
         for (const opts in optMatchFields) {
             if (!optMatchFields.hasOwnProperty(opts)) continue;
@@ -1616,8 +1605,6 @@ class Runtime extends EventEmitter {
                 }
             }
 
-            // Look up metadata for the relevant hat.
-            const hatMeta = instance._hats[requestedHatOpcode];
             if (hatMeta.restartExistingThreads) {
                 // If `restartExistingThreads` is true, we should stop
                 // any existing threads starting with the top block.
@@ -1645,6 +1632,12 @@ class Runtime extends EventEmitter {
             // Start the thread with this top block.
             newThreads.push(instance._pushThread(topBlockId, target));
         }, optTarget);
+        // For compatibility with Scratch 2, edge triggered hats need to be processed before
+        // threads are stepped. See ScratchRuntime.as for original implementation
+        newThreads.forEach(thread => {
+            execute(this.sequencer, thread);
+            thread.goToNextBlock();
+        });
         return newThreads;
     }
 

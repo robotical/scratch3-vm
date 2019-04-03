@@ -7,35 +7,23 @@ const BlockType = require('./block-type');
 // These extensions are currently built into the VM repository but should not be loaded at startup.
 // TODO: move these out into a separate repository?
 // TODO: change extension spec so that library info, including extension ID, can be collected through static methods
-const Scratch3PenBlocks = require('../extensions/scratch3_pen');
-const Scratch3WeDo2Blocks = require('../extensions/scratch3_wedo2');
-const Scratch3MusicBlocks = require('../extensions/scratch3_music');
-const Scratch3MicroBitBlocks = require('../extensions/scratch3_microbit');
-const Scratch3Text2SpeechBlocks = require('../extensions/scratch3_text2speech');
-const Scratch3TranslateBlocks = require('../extensions/scratch3_translate');
-const Scratch3VideoSensingBlocks = require('../extensions/scratch3_video_sensing');
-const Scratch3Speech2TextBlocks = require('../extensions/scratch3_speech2text');
-const Scratch3Ev3Blocks = require('../extensions/scratch3_ev3');
-const Scratch3MartyBlocks = require('../extensions/scratch3_marty');
-const Scratch3MakeyMakeyBlocks = require('../extensions/scratch3_makeymakey');
-// todo: only load this extension once we have a compatible way to load its
-// Vernier module dependency.
-// const Scratch3GdxForBlocks = require('../extensions/scratch3_gdx_for');
-
-
 const builtinExtensions = {
-    pen: Scratch3PenBlocks,
-    wedo2: Scratch3WeDo2Blocks,
-    music: Scratch3MusicBlocks,
-    microbit: Scratch3MicroBitBlocks,
-    text2speech: Scratch3Text2SpeechBlocks,
-    translate: Scratch3TranslateBlocks,
-    videoSensing: Scratch3VideoSensingBlocks,
-    speech2text: Scratch3Speech2TextBlocks,
-    ev3: Scratch3Ev3Blocks,
-    marty: Scratch3MartyBlocks,
-    makeymakey: Scratch3MakeyMakeyBlocks
-    // gdxfor: Scratch3GdxForBlocks
+    // This is an example that isn't loaded with the other core blocks,
+    // but serves as a reference for loading core blocks as extensions.
+    coreExample: () => require('../blocks/scratch3_core_example'),
+    // These are the non-core built-in extensions.
+    pen: () => require('../extensions/scratch3_pen'),
+    wedo2: () => require('../extensions/scratch3_wedo2'),
+    music: () => require('../extensions/scratch3_music'),
+    microbit: () => require('../extensions/scratch3_microbit'),
+    text2speech: () => require('../extensions/scratch3_text2speech'),
+    translate: () => require('../extensions/scratch3_translate'),
+    videoSensing: () => require('../extensions/scratch3_video_sensing'),
+    speech2text: () => require('../extensions/scratch3_speech2text'),
+    ev3: () => require('../extensions/scratch3_ev3'),
+    marty: () => require('../extensions/scratch3_marty'),
+    makeymakey: () => require('../extensions/scratch3_makeymakey'),
+    gdxfor: () => require('../extensions/scratch3_gdx_for')
 };
 
 /**
@@ -123,6 +111,30 @@ class ExtensionManager {
     }
 
     /**
+     * Synchronously load an internal extension (core or non-core) by ID. This call will
+     * fail if the provided id is not does not match an internal extension.
+     * @param {string} extensionId - the ID of an internal extension
+     */
+    loadExtensionIdSync (extensionId) {
+        if (!builtinExtensions.hasOwnProperty(extensionId)) {
+            log.warn(`Could not find extension ${extensionId} in the built in extensions.`);
+            return;
+        }
+
+        /** @TODO dupe handling for non-builtin extensions. See commit 670e51d33580e8a2e852b3b038bb3afc282f81b9 */
+        if (this.isExtensionLoaded(extensionId)) {
+            const message = `Rejecting attempt to load a second extension with ID ${extensionId}`;
+            log.warn(message);
+            return;
+        }
+
+        const extension = builtinExtensions[extensionId]();
+        const extensionInstance = new extension(this.runtime);
+        const serviceName = this._registerInternalExtension(extensionInstance);
+        this._loadedExtensions.set(extensionId, serviceName);
+    }
+
+    /**
      * Load an extension by URL or internal extension ID
      * @param {string} extensionURL - the URL for the extension to load OR the ID of an internal extension
      * @returns {Promise} resolved once the extension is loaded and initialized or rejected on failure
@@ -133,14 +145,14 @@ class ExtensionManager {
             if (this.isExtensionLoaded(extensionURL)) {
                 const message = `Rejecting attempt to load a second extension with ID ${extensionURL}`;
                 log.warn(message);
-                return Promise.reject(new Error(message));
+                return Promise.resolve();
             }
 
-            const extension = builtinExtensions[extensionURL];
+            const extension = builtinExtensions[extensionURL]();
             const extensionInstance = new extension(this.runtime);
-            return this._registerInternalExtension(extensionInstance).then(serviceName => {
-                this._loadedExtensions.set(extensionURL, serviceName);
-            });
+            const serviceName = this._registerInternalExtension(extensionInstance);
+            this._loadedExtensions.set(extensionURL, serviceName);
+            return Promise.resolve();
         }
 
         return new Promise((resolve, reject) => {
@@ -164,7 +176,7 @@ class ExtensionManager {
                     dispatch.call('runtime', '_refreshExtensionPrimitives', info);
                 })
                 .catch(e => {
-                    log.error(`Failed to refresh buildtin extension primitives: ${JSON.stringify(e)}`);
+                    log.error(`Failed to refresh built-in extension primitives: ${JSON.stringify(e)}`);
                 })
         );
         return Promise.all(allPromises);
@@ -175,6 +187,15 @@ class ExtensionManager {
         const workerInfo = this.pendingExtensions.shift();
         this.pendingWorkers[id] = workerInfo;
         return [id, workerInfo.extensionURL];
+    }
+
+    /**
+     * Synchronously collect extension metadata from the specified service and begin the extension registration process.
+     * @param {string} serviceName - the name of the service hosting the extension.
+     */
+    registerExtensionServiceSync (serviceName) {
+        const info = dispatch.callSync(serviceName, 'getInfo');
+        this._registerExtensionInfo(serviceName, info);
     }
 
     /**
@@ -205,17 +226,15 @@ class ExtensionManager {
     /**
      * Register an internal (non-Worker) extension object
      * @param {object} extensionObject - the extension object to register
-     * @returns {Promise} resolved once the extension is fully registered or rejected on failure
+     * @returns {string} The name of the registered extension service
      */
     _registerInternalExtension (extensionObject) {
         const extensionInfo = extensionObject.getInfo();
         const fakeWorkerId = this.nextExtensionWorker++;
         const serviceName = `extension_${fakeWorkerId}_${extensionInfo.id}`;
-        return dispatch.setService(serviceName, extensionObject)
-            .then(() => {
-                dispatch.call('extensions', 'registerExtensionService', serviceName);
-                return serviceName;
-            });
+        dispatch.setServiceSync(serviceName, extensionObject);
+        dispatch.callSync('extensions', 'registerExtensionServiceSync', serviceName);
+        return serviceName;
     }
 
     /**
