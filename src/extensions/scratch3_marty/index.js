@@ -1202,7 +1202,7 @@ class Scratch3MartyBlocks {
         var AXIS = MartyAccelMenu[args.AXIS];
         var axisID = [];
         axisID['X axis'] = 0; axisID['Y axis'] = 1; axisID['Z axis'] = 2;
-        return this._peripheral.marty.get_sensor("acc" + axisID[args.AXIS]);
+        return this._peripheral.marty.get_sensor("acc" + axisID[AXIS]);
     }
 
     m_get_prox (args) {
