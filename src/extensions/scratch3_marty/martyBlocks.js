@@ -16,42 +16,188 @@ const ArgumentType = require('../../extension-support/argument-type');
 const BlockType = require('../../extension-support/block-type');
 const formatMessage = require('format-message');
 
-const MartyCoronalMenu = [
-    'left', 'right'
-];
-const MartySaggitalMenu = [
-    'forward', 'backward'
-];
-const MartyTransverseMenu = [
-    'left', 'right', 'forward', 'backward'
-];
-const MartyEyesMenu = [
-    'normal', 'wide', 'angry', 'excited'
-];
-const MartyGPIOMenu = [
-    '0', '1', '2', '3', '4', '5', '6', '7'
-];
-const MartyMotorCurrentsMenu = [
-    'right hip', 'right twist', 'right knee',
-    'left hip', 'left twist', 'left knee',
-    'right arm', 'left arm'
-];
-const MartyJointsMenu = [
-    'right hip', 'right twist', 'right knee',
-    'left hip', 'left twist', 'left knee',
-    'right arm', 'left arm', 'eyes'
-];
-const MartyAccelMenu = [
-    'X axis', 'Y axis', 'Z axis'
-];
-const MartyEnabledMenu = [
-    'enabled', 'disabled'
-];
-const MartyStopTypesMenu = [
-    'finish move', 'freeze',
-    'disable motors', 'return to zero',
-    'pause', 'pause and disable motors'
-];
+messages = {
+  finish_move: {
+    id: 'marty.finish_move',
+    default: 'finish move',
+    description: 'finish move and stop'
+  },
+  freeze: {
+    id: 'marty.freeze',
+    default: 'freeze',
+    description: 'freeze motion'
+  },
+  disable_motors: {
+    id: 'marty.disable_motors',
+    default: 'disable motors',
+    description: 'disable motors'
+  },
+  return_to_zero: {
+    id: 'marty.return_to_zero',
+    default: 'return to zero',
+    description: 'return to zero'
+  },
+  pause: {
+    id: 'marty.pause',
+    default: 'pause',
+    description: 'pause'
+  },
+  pause_and_disable: {
+    id: 'marty.pause_and_disable',
+    default: 'pause and disable motors',
+    description: 'pause and disable motors'
+  },
+  left: {
+    id: 'marty.left',
+    default: 'left',
+    description: 'left direction'
+  },
+  right: {
+    id: 'marty.right',
+    default: 'right',
+    description: 'right direction'
+  },
+  forward: {
+    id: 'marty.forward',
+    default: 'forward',
+    description: 'forward direction'
+  },
+  backward: {
+    id: 'marty.backward',
+    default: 'backward',
+    description: 'backward direction'
+  },
+  normal: {
+    id: 'marty.normal',
+    default: 'normal',
+    description: 'normal eyes'
+  },
+  wide: {
+    id: 'marty.wide',
+    default: 'wide',
+    description: 'wide eyes'
+  },
+  angry: {
+    id: 'marty.angry',
+    default: 'angry',
+    description: 'angry eyes'
+  },
+  excited: {
+    id: 'marty.excited',
+    default: 'excited',
+    description: 'excited eyes'
+  },
+  gpio_0: {
+    id: 'marty.gpio_0',
+    default: '0',
+    description: 'GPIO pin 0'
+  },
+  gpio_1: {
+    id: 'marty.gpio_1',
+    default: '1',
+    description: 'GPIO pin 1'
+  },
+  gpio_2: {
+    id: 'marty.gpio_2',
+    default: '2',
+    description: 'GPIO pin 2'
+  },
+  gpio_3: {
+    id: 'marty.gpio_3',
+    default: '3',
+    description: 'GPIO pin 3'
+  },
+  gpio_4: {
+    id: 'marty.gpio_4',
+    default: '4',
+    description: 'GPIO pin 4'
+  },
+  gpio_5: {
+    id: 'marty.gpio_5',
+    default: '5',
+    description: 'GPIO pin 5'
+  },
+  gpio_6: {
+    id: 'marty.gpio_6',
+    default: '6',
+    description: 'GPIO pin 6'
+  },
+  gpio_7: {
+    id: 'marty.gpio_7',
+    default: '7',
+    description: 'GPIO pin 7'
+  },
+  right_hip: {
+    id: 'marty.right_hip',
+    default: 'right hip',
+    description: 'right hip joint'
+  },
+  right_twist: {
+    id: 'marty.right_twist',
+    default: 'right twist',
+    description: 'right twist joint'
+  },
+  right_knee: {
+    id: 'marty.right_knee',
+    default: 'right knee',
+    description: 'right knee joint'
+  },
+  left_hip: {
+    id: 'marty.left_hip',
+    default: 'left hip',
+    description: 'left hip joint'
+  },
+  left_twist: {
+    id: 'marty.left_twist',
+    default: 'left twist',
+    description: 'left twist joint'
+  },
+  left_knee: {
+    id: 'marty.left_knee',
+    default: 'left knee',
+    description: 'left knee joint'
+  },
+  right_arm: {
+    id: 'marty.right_arm',
+    default: 'right arm',
+    description: 'right arm joint'
+  },
+  left_arm: {
+    id: 'marty.left_arm',
+    default: 'left arm',
+    desciption: 'left arm joint'
+  },
+  eyes: {
+    id: 'marty.eyes',
+    default: 'eyes',
+    description: 'eye joints'
+  },
+  x_axis: {
+    id: 'marty.x_axis',
+    default: 'X axis',
+    description: 'X axis'
+  },
+  y_axis: {
+    id: 'marty.y_axis',
+    default: 'Y axis',
+    description: 'Y Axis'
+  },
+  z_axis: {
+    id: 'marty.z_axis',
+    default: 'Z axis',
+    description: 'Z axis'
+  },
+  enabled: {
+    id: 'marty.enabled',
+    default: 'enabled',
+    description: 'Enabled flag'
+  },
+  disabled: {
+    id: 'marty.disabled',
+    default: 'disabled',
+    description: 'Disabled flag'
+  }
+};
 /*
    0	Clear movement queue only (so finish the current step/wiggle/movement)
    1	Clear movement queue and servo queues (freeze where you are)
@@ -60,14 +206,75 @@ const MartyStopTypesMenu = [
    4	Pause, but keep servo and movequeue intact and motors enabled
    5	As 4, but disable motors too
  */
-const MartyStopMap = {
-    'finish move': 0,
-    'freeze': 1,
-    'disable motors': 2,
-    'return to zero': 3,
-    'pause': 4,
-    'pause and disable motors': 5,
-};
+const MartyStopTypesMenu = [
+  { text: formatMessage(messages.finish_move),       value: 0 },
+  { text: formatMessage(messages.freeze),            value: 1 },
+  { text: formatMessage(messages.disable_motors),    value: 2 },
+  { text: formatMessage(messages.return_to_zero),    value: 3 },
+  { text: formatMessage(messages.pause),             value: 4 },
+  { text: formatMessage(messages.pause_and_disable), value: 5 }
+];
+
+const MartyCoronalMenu = [
+  { text: formatMessage(messages.left),  value: 'left' },
+  { text: formatMessage(messages.right), value: 'right' }
+];
+const MartySaggitalMenu = [
+  { text: formatMessage(messages.forward),  value: 'forward' },
+  { text: formatMessage(messages.backward), value: 'backward' }
+];
+const MartyTransverseMenu = [
+  { text: formatMessage(messages.left),     value: 'left' },
+  { text: formatMessage(messages.right),    value: 'right' },
+  { text: formatMessage(messages.forward),  value: 'forward' },
+  { text: formatMessage(messages.backward), value: 'backward' }
+];
+const MartyEyesMenu = [
+  { text: formatMessage(messages.normal),  value: 'normal' },
+  { text: formatMessage(messages.wide),    value: 'wide' },
+  { text: formatMessage(messages.angry),   value: 'angry' },
+  { text: formatMessage(messages.excited), value: 'excited' }
+];
+const MartyGPIOMenu = [
+  { text: formatMessage(messages.gpio_0), value: '0'},
+  { text: formatMessage(messages.gpio_1), value: '1'},
+  { text: formatMessage(messages.gpio_2), value: '2'},
+  { text: formatMessage(messages.gpio_3), value: '3'},
+  { text: formatMessage(messages.gpio_4), value: '4'},
+  { text: formatMessage(messages.gpio_5), value: '5'},
+  { text: formatMessage(messages.gpio_6), value: '6'},
+  { text: formatMessage(messages.gpio_7), value: '7'}
+];
+const MartyMotorCurrentsMenu = [
+  { text: formatMessage(messages.right_hip),   value: 'right hip' },
+  { text: formatMessage(messages.right_twist), value: 'right twist' },
+  { text: formatMessage(messages.right_knee),  value: 'right knee' },
+  { text: formatMessage(messages.left_hip),    value: 'left hip' },
+  { text: formatMessage(messages.left_twist),  value: 'left twist' },
+  { text: formatMessage(messages.left_knee),   value: 'left knee' },
+  { text: formatMessage(messages.right_arm),   value: 'right arm' },
+  { text: formatMessage(messages.left_arm),    value: 'left arm' }
+];
+const MartyJointsMenu = [
+  { text: formatMessage(messages.right_hip),   value: 'right hip' },
+  { text: formatMessage(messages.right_twist), value: 'right twist' },
+  { text: formatMessage(messages.right_knee),  value: 'right knee' },
+  { text: formatMessage(messages.left_hip),    value: 'left hip' },
+  { text: formatMessage(messages.left_twist),  value: 'left twist' },
+  { text: formatMessage(messages.left_knee),   value: 'left knee' },
+  { text: formatMessage(messages.right_arm),   value: 'right arm' },
+  { text: formatMessage(messages.left_arm),    value: 'left arm' },
+  { text: formatMessage(messages.eyes),        value: 'eyes' }
+];
+const MartyAccelMenu = [
+  { text: formatMessage(messages.x_axis), value: 'X axis' },
+  { text: formatMessage(messages.y_axis), value: 'Y axis' },
+  { text: formatMessage(messages.z_axis), value: 'Z axis' }
+];
+const MartyEnabledMenu = [
+  { text: formatMessage(messages.enabled),  value: 'enabled' },
+  { text: formatMessage(messages.disabled), value: 'disabled' }
+];
 
 var _peripheralFactory = null;
 
@@ -81,7 +288,11 @@ class Scratch3MartyBlocks {
      * @return {string} - the name of this extension.
      */
     static get EXTENSION_NAME () {
-        return 'Marty the Robot';
+        return formatMessage({
+          id: 'marty.extension_name',
+          default: 'Marty the Robot',
+          description: 'Name of the Marty extension'
+        });
     }
 
 
@@ -173,9 +384,9 @@ class Scratch3MartyBlocks {
                     blockType: BlockType.COMMAND,
                     arguments: {
                         STOPTYPE: {
-                            type: ArgumentType.STRING,
+                            type: ArgumentType.NUMBER,
                             menu: 'stopTypes',
-                            defaultValue: MartyStopTypesMenu.indexOf('freeze'),
+                            defaultValue: 1,
                         }
                     }
                 },
@@ -234,7 +445,7 @@ class Scratch3MartyBlocks {
                         DIRECTION: {
                             type: ArgumentType.STRING,
                             menu: 'turn_directions',
-                            defaultValue: MartyCoronalMenu.indexOf('left'),
+                            defaultValue: 'left',
                         },
                         MOVETIME: {
                             type: ArgumentType.NUMBER,
@@ -335,7 +546,7 @@ class Scratch3MartyBlocks {
                         SIDE: {
                             type: ArgumentType.STRING,
                             menu: 'turn_directions',
-                            defaultValue: MartyCoronalMenu.indexOf('left'),
+                            defaultValue: 'left',
                         },
                     }
                 },
@@ -351,7 +562,7 @@ class Scratch3MartyBlocks {
                         DIRECTION: {
                             type: ArgumentType.STRING,
                             menu: 'turn_directions',
-                            defaultValue: MartyCoronalMenu.indexOf('left'),
+                            defaultValue: 'left',
                         },
                         NUMSTEPS: {
                             type: ArgumentType.NUMBER,
@@ -371,7 +582,7 @@ class Scratch3MartyBlocks {
                         SIDE: {
                             type: ArgumentType.STRING,
                             menu: 'directions',
-                            defaultValue: MartyTransverseMenu.indexOf('left'),
+                            defaultValue: 'left',
                         },
                         MOVETIME: {
                             type: ArgumentType.NUMBER,
@@ -395,7 +606,7 @@ class Scratch3MartyBlocks {
                         SIDE: {
                             type: ArgumentType.STRING,
                             menu: 'turn_directions',
-                            defaultValue: MartyCoronalMenu.indexOf('left'),
+                            defaultValue: 'left',
                         },
                         NUMSTEPS: {
                             type: ArgumentType.NUMBER,
@@ -418,9 +629,9 @@ class Scratch3MartyBlocks {
                     blockType: BlockType.COMMAND,
                     arguments: {
                         EYES: {
-                            type: ArgumentType.STRING,
+                            type: ArgumentType.NUMBER,
                             menu: 'eyes',
-                            defaultValue: MartyEyesMenu.indexOf('excited'),
+                            defaultValue: 'excited',
                         },
                     }
                 },
@@ -436,12 +647,12 @@ class Scratch3MartyBlocks {
                         LEG: {
                             type: ArgumentType.STRING,
                             menu: 'leg',
-                            defaultValue: MartyCoronalMenu.indexOf('left'),
+                            defaultValue: 'left',
                         },
                         DIRECTION: {
                             type: ArgumentType.STRING,
                             menu: 'saggital',
-                            defaultValue: MartySaggitalMenu.indexOf('forward'),
+                            defaultValue: 'forward',
                         }
                     }
                 },
@@ -457,7 +668,7 @@ class Scratch3MartyBlocks {
                         LEG: {
                             type: ArgumentType.STRING,
                             menu: 'leg',
-                            defaultValue: MartyCoronalMenu.indexOf('left'),
+                            defaultValue: 'left'
                         },
                     }
                 },
@@ -482,7 +693,7 @@ class Scratch3MartyBlocks {
                         JOINT: {
                             type: ArgumentType.STRING,
                             menu: 'joints',
-                            defaultValue: MartyJointsMenu.indexOf('right arm'),
+                            defaultValue: 'right arm',
                         },
                         POSITION: {
                             type: ArgumentType.NUMBER,
@@ -516,7 +727,7 @@ class Scratch3MartyBlocks {
                         GPIO: {
                             type: ArgumentType.STRING,
                             menu: 'gpios',
-                            defaultValue: MartyGPIOMenu.indexOf('0'),
+                            defaultValue: '0',
                         },
                     }
                 },
@@ -532,7 +743,7 @@ class Scratch3MartyBlocks {
                         MOTOR: {
                             type: ArgumentType.STRING,
                             menu: 'motorCurrents',
-                            defaultValue: MartyMotorCurrentsMenu.indexOf('right arm'),
+                            defaultValue: 'right arm',
                         },
                     }
                 },
@@ -548,7 +759,7 @@ class Scratch3MartyBlocks {
                         AXIS: {
                             type: ArgumentType.STRING,
                             menu: 'accel',
-                            defaultValue: MartyAccelMenu.indexOf('X axis'),
+                            defaultValue: 'X axis',
                         },
                     }
                 },
@@ -574,24 +785,24 @@ class Scratch3MartyBlocks {
                         BLOCK: {
                             type: ArgumentType.STRING,
                             menu: 'enabled',
-                            defaultValue: MartyEnabledMenu.indexOf('enabled'),
+                            defaultValue: 'enabled',
                         },
                     }
                 },
             ],
 
             menus: {
-                leg: this._formatMenu(MartyCoronalMenu),
-                turn_directions: this._formatMenu(MartyCoronalMenu),
-                directions: this._formatMenu(MartyTransverseMenu),
-                eyes: this._formatMenu(MartyEyesMenu),
-                gpios: this._formatMenu(MartyGPIOMenu),
-                motorCurrents: this._formatMenu(MartyMotorCurrentsMenu),
-                joints: this._formatMenu(MartyJointsMenu),
-                accel: this._formatMenu(MartyAccelMenu),
-                enabled: this._formatMenu(MartyEnabledMenu),
-                saggital: this._formatMenu(MartySaggitalMenu),
-                stopTypes: this._formatMenu(MartyStopTypesMenu)
+                leg: MartyCoronalMenu,
+                turn_directions: MartyCoronalMenu,
+                directions: MartyTransverseMenu,
+                eyes: MartyEyesMenu,
+                gpios: MartyGPIOMenu,
+                motorCurrents: MartyMotorCurrentsMenu,
+                joints: MartyJointsMenu,
+                accel: MartyAccelMenu,
+                enabled: MartyEnabledMenu,
+                saggital: MartySaggitalMenu,
+                stopTypes: MartyStopTypesMenu
             },
         };
     }
@@ -610,7 +821,7 @@ class Scratch3MartyBlocks {
     }
 
     m_stop (args) {
-        var STOPTYPE = MartyStopMap[MartyStopTypesMenu[args.STOPTYPE]];
+        var STOPTYPE = args.STOPTYPE;
         this._peripheral.marty.stop(STOPTYPE);
     }
 
@@ -639,7 +850,7 @@ class Scratch3MartyBlocks {
     }
 
     m_circle_dance (args) {
-        var DIRECTION =  MartyCoronalMenu[args.DIRECTION];
+        var DIRECTION =  args.DIRECTION;
         this._peripheral.marty.circle_dance(DIRECTION, parseFloat(args.MOVETIME)*1000);
         if (this._blockingMode)
             return new Promise((resolve) =>
@@ -682,7 +893,7 @@ class Scratch3MartyBlocks {
     }
 
     m_kick (args) {
-        var SIDE = MartyCoronalMenu[args.SIDE];
+        var SIDE = args.SIDE;
         this._peripheral.marty.kick(SIDE, 0, 2000);
         if (this._blockingMode)
             return new Promise((resolve) =>
@@ -690,7 +901,7 @@ class Scratch3MartyBlocks {
     }
 
     m_turn (args) {
-        var DIRECTION = MartyCoronalMenu[args.DIRECTION];
+        var DIRECTION = args.DIRECTION;
         var turn = 80;
         if (DIRECTION == "right" ){
             turn = -80;
@@ -702,7 +913,7 @@ class Scratch3MartyBlocks {
     }
 
     m_lean (args) {
-        var SIDE = MartyTransverseMenu[args.SIDE];
+        var SIDE = args.SIDE;
         this._peripheral.marty.lean(SIDE, 60, parseFloat(args.MOVETIME)*1000);
         if (this._blockingMode)
             return new Promise((resolve) =>
@@ -710,7 +921,7 @@ class Scratch3MartyBlocks {
     }
 
     m_sidestep (args) {
-        var SIDE = MartyCoronalMenu[args.SIDE];
+        var SIDE = args.SIDE;
         this._peripheral.marty.sidestep(SIDE,
                                         parseInt(args.NUMSTEPS),
                                         parseFloat(args.MOVETIME)*1000,
@@ -723,7 +934,7 @@ class Scratch3MartyBlocks {
     /* - - - */
 
     m_eyes (args) {
-        var EYES = MartyEyesMenu[args.EYES];
+        var EYES = args.EYES;
         var eyepos = [];
         eyepos['normal'] = 0; eyepos['angry'] = 50; eyepos['excited'] = -25; eyepos['wide'] = -100;
         this._peripheral.marty.move_joint(8, eyepos[EYES], 100);
@@ -733,7 +944,7 @@ class Scratch3MartyBlocks {
     }
 
     m_lift_leg (args) {
-        var LEG = MartyCoronalMenu[args.LEG];
+        var LEG = args.LEG;
         var joint;
         var mult = 1;
         if (LEG == 'left'){
@@ -766,8 +977,8 @@ class Scratch3MartyBlocks {
     }
 
     m_move_leg (args) {
-        var LEG = MartyCoronalMenu[args.LEG];
-        var DIRECTION = MartySaggitalMenu[args.DIRECTION];
+        var LEG = args.LEG;
+        var DIRECTION = args.DIRECTION;
         var joint;
         var mult = 1;
         if (LEG == 'left'){
@@ -783,7 +994,7 @@ class Scratch3MartyBlocks {
     }
 
     m_move_joint (args) {
-        var JOINT = MartyJointsMenu[args.JOINT];
+        var JOINT = args.JOINT;
         this._peripheral.marty.move_joint(this.jointID[JOINT],
                                           args.POSITION,
                                           parseFloat(args.MOVETIME)*1000);
@@ -801,19 +1012,19 @@ class Scratch3MartyBlocks {
 
     m_get_gpio (args) {
         /* TODO often returns null */
-        var GPIO = MartyGPIOMenu[args.GPIO];
+        var GPIO = args.GPIO;
         return this._peripheral.marty.get_sensor("gpio" + GPIO);
     }
 
     m_get_motor_current (args) {
         /* TODO often returns null */
-        var MOTOR = MartyMotorCurrentsMenu[args.MOTOR];
+        var MOTOR = args.MOTOR;
         return this._peripheral.marty.get_sensor("mc" + this.jointID[MOTOR]);
     }
 
     m_get_accel (args) {
         /* TODO often returns null */
-        var AXIS = MartyAccelMenu[args.AXIS];
+        var AXIS = args.AXIS;
         var axisID = [];
         axisID['X axis'] = 0; axisID['Y axis'] = 1; axisID['Z axis'] = 2;
         return this._peripheral.marty.get_sensor("acc" + axisID[AXIS]);
@@ -842,44 +1053,13 @@ class Scratch3MartyBlocks {
     /* - - - */
 
     m_set_blocking(args) {
-        var BLOCK = MartyEnabledMenu[args.BLOCK];
+        var BLOCK = args.BLOCK;
         if (BLOCK == 'enabled') {
             this._blockingMode = true;
         } else {
             this._blockingMode = false;
         }
         console.log('Setting Marty blocking to ' + BLOCK + ' (' + this._blockingMode + ')');
-    }
-
-
-    /**
-     * Formats menus into a format suitable for block menus, and loading previously
-     * saved projects:
-     * [
-     *   {
-     *    text: label,
-     *    value: index
-     *   },
-     *   {
-     *    text: label,
-     *    value: index
-     *   },
-     *   etc...
-     * ]
-     *
-     * @param {array} menu - a menu to format.
-     * @return {object} - a formatted menu as an object.
-     * @private
-     */
-    _formatMenu (menu) {
-        const m = [];
-        for (let i = 0; i < menu.length; i++) {
-            const obj = {};
-            obj.text = menu[i];
-            obj.value = i.toString();
-            m.push(obj);
-        }
-        return m;
     }
 
 };

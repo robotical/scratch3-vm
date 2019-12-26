@@ -24,27 +24,27 @@ test('stop', t => {
   var ARGS = {};
 
   results = ['finish move', 0];
-  ARGS = {STOPTYPE: '0'};
+  ARGS = {STOPTYPE: 0};
   marty.m_stop(ARGS);
 
   results = ['freeze', 1];
-  ARGS = {STOPTYPE: '1'};
+  ARGS = {STOPTYPE: 1};
   marty.m_stop(ARGS);
 
   results = ['disable motors', 2];
-  ARGS = {STOPTYPE: '2'};
+  ARGS = {STOPTYPE: 2};
   marty.m_stop(ARGS);
 
   results = ['return to zero', 3];
-  ARGS = {STOPTYPE: '3'};
+  ARGS = {STOPTYPE: 3};
   marty.m_stop(ARGS);
 
   results = ['pause', 4];
-  ARGS = {STOPTYPE: '4'};
+  ARGS = {STOPTYPE: 4};
   marty.m_stop(ARGS);
 
   results = ['pause and disable motors', 5];
-  ARGS = {STOPTYPE: '5'};
+  ARGS = {STOPTYPE: 5};
   marty.m_stop(ARGS);
 
   t.end();
@@ -54,7 +54,7 @@ test('stop', t => {
 
 test('circle dance', t => {
   const marty = martyFactory();
-  marty.m_set_blocking({BLOCK: '1'});
+  marty.m_set_blocking({BLOCK: 'disabled'});
   marty._peripheral.marty.circle_dance = function (direction, movetime) {
     t.strictEqual(direction, results[1], 'direction is ' + results[0]);
     t.strictEqual(movetime, 1000, 'movetime is one second');
@@ -64,11 +64,11 @@ test('circle dance', t => {
   var ARGS = {};
 
   results = ['left','left'];
-  ARGS = {DIRECTION: '0', MOVETIME: 1};
+  ARGS = {DIRECTION: 'left', MOVETIME: 1};
   marty.m_circle_dance(ARGS);
 
   results = ['right','right'];
-  ARGS = {DIRECTION: '1', MOVETIME: 1};
+  ARGS = {DIRECTION: 'right', MOVETIME: 1};
   marty.m_circle_dance(ARGS);
 
   t.end();
@@ -77,7 +77,7 @@ test('circle dance', t => {
 
 test('kick', t => {
   const marty = martyFactory();
-  marty.m_set_blocking({BLOCK: '1'});
+  marty.m_set_blocking({BLOCK: 'disabled'});
   marty._peripheral.marty.kick = function (side, twist, movetime) {
     t.strictEqual(side, results[0], 'side is ' + results[1]);
     t.strictEqual(twist, 0, 'twist is zero');
@@ -88,11 +88,11 @@ test('kick', t => {
   var ARGS = {};
 
   results = ['left', 'left'];
-  ARGS = {SIDE: '0'};
+  ARGS = {SIDE: 'left'};
   marty.m_kick(ARGS);
 
   results = ['right', 'right'];
-  ARGS = {SIDE: '1'};
+  ARGS = {SIDE: 'right'};
   marty.m_kick(ARGS);
 
   t.end();
@@ -101,7 +101,7 @@ test('kick', t => {
 
 test('turn', t => {
   const marty = martyFactory();
-  marty.m_set_blocking({BLOCK: '1'});
+  marty.m_set_blocking({BLOCK: 'disabled'});
   marty._peripheral.marty.walk = function (steps, turn, move_time, step_length, side) {
     t.strictEqual(steps, results[0], 'turn two steps');
     t.strictEqual(turn, results[1], 'turn size is eighty');
@@ -114,11 +114,11 @@ test('turn', t => {
   var ARGS = {};
 
   results = [2, 80];
-  ARGS = {DIRECTION: '0', NUMSTEPS: 2};
+  ARGS = {DIRECTION: 'left', NUMSTEPS: 2};
   marty.m_turn(ARGS);
 
   results = [2, -80];
-  ARGS = {DIRECTION: '1', NUMSTEPS: 2};
+  ARGS = {DIRECTION: 'right', NUMSTEPS: 2};
   marty.m_turn(ARGS);
 
   t.end();
@@ -126,7 +126,7 @@ test('turn', t => {
 
 test('lean', t => {
   const marty = martyFactory();
-  marty.m_set_blocking({BLOCK: '1'});
+  marty.m_set_blocking({BLOCK: 'disabled'});
   marty._peripheral.marty.lean = function (dir, amount, move_time) {
     t.strictEqual(dir, results[0], 'lean to the ' + results[0]);
     t.strictEqual(amount, 60, 'lean by sixty units');
@@ -137,11 +137,19 @@ test('lean', t => {
   var ARGS = {};
 
   results = ['left', 500];
-  ARGS = {SIDE: '0', MOVETIME: 0.5};
+  ARGS = {SIDE: 'left', MOVETIME: 0.5};
   marty.m_lean(ARGS);
 
   results = ['right', 1500];
-  ARGS = {SIDE: '1', MOVETIME: 1.5};
+  ARGS = {SIDE: 'right', MOVETIME: 1.5};
+  marty.m_lean(ARGS);
+
+  results = ['forward', 2500];
+  ARGS = {SIDE: 'forward', MOVETIME: 2.5};
+  marty.m_lean(ARGS);
+
+  results = ['backward', 3500];
+  ARGS = {SIDE: 'backward', MOVETIME: 3.5};
   marty.m_lean(ARGS);
 
   t.end();
@@ -150,7 +158,7 @@ test('lean', t => {
 
 test('sidestep', t => {
   const marty = martyFactory();
-  marty.m_set_blocking({BLOCK: '1'});
+  marty.m_set_blocking({BLOCK: 'disabled'});
   marty._peripheral.marty.sidestep = function (side, num_steps, move_time, step_length) {
     t.strictEqual(side, results[0], 'step to the ' + results[0]);
     t.strictEqual(num_steps, results[1], 'take ' + results[1] + ' steps');
@@ -163,11 +171,11 @@ test('sidestep', t => {
   var ARGS = {};
 
   results = ['left', 1, 800, 50];
-  ARGS = {STEPLEN: 50, SIDE: '0', NUMSTEPS: 1, MOVETIME: 0.8};
+  ARGS = {STEPLEN: 50, SIDE: 'left', NUMSTEPS: 1, MOVETIME: 0.8};
   marty.m_sidestep(ARGS);
 
   results = ['right', 10, 1800, 100];
-  ARGS = {STEPLEN: 100, SIDE: '1', NUMSTEPS: 10, MOVETIME: 1.8};
+  ARGS = {STEPLEN: 100, SIDE: 'right', NUMSTEPS: 10, MOVETIME: 1.8};
   marty.m_sidestep(ARGS);
 
   t.end();
@@ -176,7 +184,7 @@ test('sidestep', t => {
 
 test('eyes', t => {
   const marty = martyFactory();
-  marty.m_set_blocking({BLOCK: '1'});
+  marty.m_set_blocking({BLOCK: 'disabled'});
   marty._peripheral.marty.move_joint = function (jointID, position, move_time) {
     t.strictEqual(jointID, results[0], 'move joint ' + results[0]);
     t.strictEqual(position, results[1], 'move to ' + results[1]);
@@ -187,19 +195,19 @@ test('eyes', t => {
   var ARGS = {};
 
   results = [8, 0, 100]
-  ARGS = {EYES: "0"};
+  ARGS = {EYES: 'normal'};
   marty.m_eyes(ARGS);
 
   results = [8, -100, 100]
-  ARGS = {EYES: "1"};
+  ARGS = {EYES: 'wide'};
   marty.m_eyes(ARGS);
 
   results = [8, 50, 100]
-  ARGS = {EYES: "2"};
+  ARGS = {EYES: 'angry'};
   marty.m_eyes(ARGS);
 
   results = [8, -25, 100]
-  ARGS = {EYES: "3"};
+  ARGS = {EYES: 'excited'};
   marty.m_eyes(ARGS);
 
   t.end();
@@ -208,7 +216,7 @@ test('eyes', t => {
 
 test('lift leg', t => {
   const marty = martyFactory();
-  marty.m_set_blocking({BLOCK: '1'});
+  marty.m_set_blocking({BLOCK: 'disabled'});
   marty._peripheral.marty.move_joint = function (jointID, position, move_time) {
     t.strictEqual(jointID, results[0], 'move joint ' + results[0]);
     t.strictEqual(position, results[1], 'move to ' + results[1]);
@@ -219,11 +227,11 @@ test('lift leg', t => {
   var ARGS = {};
 
   results = [2, -80, 750];
-  ARGS = {LEG: '0'};
+  ARGS = {LEG: 'left'};
   marty.m_lift_leg(ARGS);
 
   results = [5, 80, 750];
-  ARGS = {LEG: '1'};
+  ARGS = {LEG: 'right'};
   marty.m_lift_leg(ARGS);
 
   t.end();
@@ -232,7 +240,7 @@ test('lift leg', t => {
 
 test('move leg', t => {
   const marty = martyFactory();
-  marty.m_set_blocking({BLOCK: '1'});
+  marty.m_set_blocking({BLOCK: 'disabled'});
   marty._peripheral.marty.move_joint = function (jointID, position, move_time) {
     t.strictEqual(jointID, results[0], 'move joint ' + results[0]);
     t.strictEqual(position, results[1], 'move to ' + results[1]);
@@ -243,11 +251,11 @@ test('move leg', t => {
   var ARGS = {};
 
   results = [0, -30, 750];
-  ARGS = {LEG: '0', DIRECTION: '0'};
+  ARGS = {LEG: 'left', DIRECTION: 'forward'};
   marty.m_move_leg(ARGS);
 
   results = [3, 30, 750];
-  ARGS = {LEG: '1', DIRECTION: '1'};
+  ARGS = {LEG: 'right', DIRECTION: 'backward'};
   marty.m_move_leg(ARGS);
 
   t.end();
@@ -256,7 +264,7 @@ test('move leg', t => {
 
 test('move joint', t => {
   const marty = martyFactory();
-  marty.m_set_blocking({BLOCK: '1'});
+  marty.m_set_blocking({BLOCK: 'disabled'});
   marty._peripheral.marty.move_joint = function (jointID, position, move_time) {
     t.strictEqual(jointID, results[0], 'move joint ' + results[0]);
     t.strictEqual(position, results[1], 'move to ' + results[1]);
@@ -268,39 +276,39 @@ test('move joint', t => {
 
   //Note the mismatch between the joint ID in the call and the one in results[0]
   results = [3, 100, 1000];
-  ARGS = {JOINT: '0', POSITION: 100, MOVETIME: 1};
+  ARGS = {JOINT: 'right hip', POSITION: 100, MOVETIME: 1};
   marty.m_move_joint(ARGS);
 
   results = [4, 100, 1000];
-  ARGS = {JOINT: '1', POSITION: 100, MOVETIME: 1};
+  ARGS = {JOINT: 'right twist', POSITION: 100, MOVETIME: 1};
   marty.m_move_joint(ARGS);
 
   results = [5, 100, 1000];
-  ARGS = {JOINT: '2', POSITION: 100, MOVETIME: 1};
+  ARGS = {JOINT: 'right knee', POSITION: 100, MOVETIME: 1};
   marty.m_move_joint(ARGS);
 
   results = [0, 100, 1000];
-  ARGS = {JOINT: '3', POSITION: 100, MOVETIME: 1};
+  ARGS = {JOINT: 'left hip', POSITION: 100, MOVETIME: 1};
   marty.m_move_joint(ARGS);
 
   results = [1, 100, 1000];
-  ARGS = {JOINT: '4', POSITION: 100, MOVETIME: 1};
+  ARGS = {JOINT: 'left twist', POSITION: 100, MOVETIME: 1};
   marty.m_move_joint(ARGS);
 
   results = [2, 100, 1000];
-  ARGS = {JOINT: '5', POSITION: 100, MOVETIME: 1};
+  ARGS = {JOINT: 'left knee', POSITION: 100, MOVETIME: 1};
   marty.m_move_joint(ARGS);
 
   results = [7, 100, 1000];
-  ARGS = {JOINT: '6', POSITION: 100, MOVETIME: 1};
+  ARGS = {JOINT: 'right arm', POSITION: 100, MOVETIME: 1};
   marty.m_move_joint(ARGS);
 
   results = [6, 100, 1000];
-  ARGS = {JOINT: '7', POSITION: 100, MOVETIME: 1};
+  ARGS = {JOINT: 'left arm', POSITION: 100, MOVETIME: 1};
   marty.m_move_joint(ARGS);
 
   results = [8, 100, 1000];
-  ARGS = {JOINT: '8', POSITION: 100, MOVETIME: 1};
+  ARGS = {JOINT: 'eyes', POSITION: 100, MOVETIME: 1};
   marty.m_move_joint(ARGS);
 
   t.end();
@@ -374,42 +382,42 @@ test('get motor current', t => {
   var result = 0;
 
   results = ['mc3', 0];
-  ARGS = {MOTOR: '0'};
+  ARGS = {MOTOR: 'right hip'};
   result = marty.m_get_motor_current(ARGS);
   t.strictEqual(result, 0);
 
   results = ['mc4', 1];
-  ARGS = {MOTOR: '1'};
+  ARGS = {MOTOR: 'right twist'};
   result = marty.m_get_motor_current(ARGS);
   t.strictEqual(result, 100);
 
   results = ['mc5', 2];
-  ARGS = {MOTOR: '2'};
+  ARGS = {MOTOR: 'right knee'};
   result = marty.m_get_motor_current(ARGS);
   t.strictEqual(result, 200);
 
   results = ['mc0', 3];
-  ARGS = {MOTOR: '3'};
+  ARGS = {MOTOR: 'left hip'};
   result = marty.m_get_motor_current(ARGS);
   t.strictEqual(result, 300);
 
   results = ['mc1', 4];
-  ARGS = {MOTOR: '4'};
+  ARGS = {MOTOR: 'left twist'};
   result = marty.m_get_motor_current(ARGS);
   t.strictEqual(result, 400);
 
   results = ['mc2', 5];
-  ARGS = {MOTOR: '5'};
+  ARGS = {MOTOR: 'left knee'};
   result = marty.m_get_motor_current(ARGS);
   t.strictEqual(result, 500);
 
   results = ['mc7', 6];
-  ARGS = {MOTOR: '6'};
+  ARGS = {MOTOR: 'right arm'};
   result = marty.m_get_motor_current(ARGS);
   t.strictEqual(result, 600);
 
   results = ['mc6', 7];
-  ARGS = {MOTOR: '7'};
+  ARGS = {MOTOR: 'left arm'};
   result = marty.m_get_motor_current(ARGS);
   t.strictEqual(result, 700);
 
@@ -429,17 +437,17 @@ test('get accel', t => {
   var result = 0;
 
   results = ['acc0', 0];
-  ARGS = {AXIS: '0'};
+  ARGS = {AXIS: 'X axis'};
   result = marty.m_get_accel(ARGS);
   t.strictEqual(result, 0);
 
   results = ['acc1', 1];
-  ARGS = {AXIS: '1'};
+  ARGS = {AXIS: 'Y axis'};
   result = marty.m_get_accel(ARGS);
   t.strictEqual(result, 100);
 
   results = ['acc2', 2];
-  ARGS = {AXIS: '2'};
+  ARGS = {AXIS: 'Z axis'};
   result = marty.m_get_accel(ARGS);
   t.strictEqual(result, 200);
 
@@ -450,7 +458,7 @@ test('set blocking', t => {
   const marty = martyFactory();
 
   marty._blockingMode = false;
-  var ARGS = {BLOCK: '0'};
+  var ARGS = {BLOCK: 'enabled'};
 
   marty.m_set_blocking(ARGS);
 
