@@ -959,21 +959,31 @@ class Scratch3MartyBlocks {
                 setTimeout(resolve, 750));
     }
 
-    m_lower_leg (args) {
+    m_lower_leg_action(rcb){
         var left_knee = this._peripheral.marty.get_sensor("mp" + this.jointID['left knee']);
         var right_knee = this._peripheral.marty.get_sensor("mp" + this.jointID['right knee']);
-        /* if (left_knee === null || right_knee === null){
-         *     setTimeout(ext.lower_leg, 200, callback);
-         *     return;
-         * }*/
-        if (right_knee > 0 && right_knee > left_knee){
-            this._peripheral.marty.move_joint(this.jointID['right knee'], left_knee, 500);
-        } else {
-            this._peripheral.marty.move_joint(this.jointID['left knee'], right_knee, 500);
-        }
-        if (this._blockingMode)
-            return new Promise((resolve) =>
-                setTimeout(resolve, 500));
+		console.log("m_lleg " + left_knee + " / " + right_knee);
+		if (left_knee === null || right_knee === null){
+			let lcallback = this.m_lower_leg_action.bind(this);
+			setTimeout(lcallback, 25, rcb);
+		} else {
+	        if (Math.abs(right_knee) > Math.abs(left_knee)){
+	            this._peripheral.marty.move_joint(this.jointID['right knee'], left_knee, 500);
+	        } else {
+	            this._peripheral.marty.move_joint(this.jointID['left knee'], right_knee, 500);
+	        }
+	        if (this._blockingMode){
+	            setTimeout(rcb, 500);
+	        } else {
+	            rcb();
+	        }
+	    }
+        return;
+    }
+
+    m_lower_leg (args) {
+        let lcallback = this.m_lower_leg_action.bind(this);
+       	return new Promise((resolve)=>lcallback(resolve));
     }
 
     m_move_leg (args) {
