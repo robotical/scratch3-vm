@@ -953,7 +953,7 @@ class Scratch3MartyBlocks {
         } else {
             joint = 'right knee';
         }
-        this._peripheral.marty.move_joint(this.jointID[joint], 80*mult, 750);
+        this._peripheral.marty.move_joint(this.jointID[joint], 65*mult, 750);
         if (this._blockingMode)
             return new Promise((resolve) =>
                 setTimeout(resolve, 750));
@@ -964,7 +964,7 @@ class Scratch3MartyBlocks {
         var right_knee = this._peripheral.marty.get_sensor("mp" + this.jointID['right knee']);
 		console.log("m_lleg " + left_knee + " / " + right_knee);
 		if (left_knee === null || right_knee === null){
-			let lcallback = this.m_lower_leg_action.bind(this);
+			var lcallback = this.m_lower_leg_action.bind(this);
 			setTimeout(lcallback, 25, rcb);
 		} else {
 	        if (Math.abs(right_knee) > Math.abs(left_knee)){
@@ -982,7 +982,7 @@ class Scratch3MartyBlocks {
     }
 
     m_lower_leg (args) {
-        let lcallback = this.m_lower_leg_action.bind(this);
+        var lcallback = this.m_lower_leg_action.bind(this);
        	return new Promise((resolve)=>lcallback(resolve));
     }
 
