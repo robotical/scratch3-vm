@@ -997,7 +997,7 @@ class Scratch3MartyBlocks {
             joint = 'right hip';
         }
         if (DIRECTION == 'forward'){mult = -1};
-        this._peripheral.marty.move_joint(this.jointID[joint], 30*mult, 750);
+        this._peripheral.marty.move_joint(this.jointID[joint], 25*mult, 750);
         if (this._blockingMode)
             return new Promise((resolve) =>
                 setTimeout(resolve, 750));
