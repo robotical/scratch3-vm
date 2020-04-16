@@ -99,7 +99,7 @@ class MartyPeripheral {
         this._availablePeripherals = [];
         this._CHresp = null;
 
-        this._scanTimeout = 2500;
+        this._scanTimeout = 5000;
         this._onScanTimeout = null;
 
         this._connectingInterval = null;
@@ -110,8 +110,10 @@ class MartyPeripheral {
          * @private
          */
         if (localIp != null){
+            this._localIpFound = true;
             this._localIp = localIp.split('.').slice(0, -1).join('.');
         } else {
+            this._localIpFound = false;
             this._localIp = '192.168.0';
         }
         console.log('Local IP for Marty Peripheral is ' + this._localIp);
@@ -262,9 +264,12 @@ class MartyPeripheral {
     }
 
     _scanRange (ip) {
-    	console.log("gonna scan" + ip);
+    	console.log("gonna scan " + ip);
         for (var i = 1; i < 255; i++) {
             this._sendRequest(ip + "." + i);
+        }
+        if (!this._localIpFound && ip == "192.168.0"){
+            this._scanRange('192.168.1');
         }             
     }
 
