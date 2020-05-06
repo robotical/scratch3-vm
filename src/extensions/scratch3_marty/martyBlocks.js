@@ -215,7 +215,7 @@ const MartyStopTypesMenu = [
   { text: formatMessage(messages.pause_and_disable), value: 5 }
 ];
 
-const MartyCoronalMenu = [
+var MartyCoronalMenu = [
   { text: formatMessage(messages.left),  value: 'left' },
   { text: formatMessage(messages.right), value: 'right' }
 ];
@@ -271,7 +271,8 @@ const MartyAccelMenu = [
   { text: formatMessage(messages.y_axis), value: 'Y axis' },
   { text: formatMessage(messages.z_axis), value: 'Z axis' }
 ];
-const MartyEnabledMenu = [
+var MartyEnabledMenu = [
+//  { text: formatMessage(messages.enabled),  value: 'enabled' },
   { text: formatMessage(messages.enabled),  value: 'enabled' },
   { text: formatMessage(messages.disabled), value: 'disabled' }
 ];
@@ -766,7 +767,7 @@ class Scratch3MartyBlocks {
                 {
                     opcode: 'm_get_prox',
                     text: formatMessage({
-                        id: 'marty.battProxBlock',
+                        id: 'marty.proxBlock',
                         default: 'proximity sensor',
                         description: 'Get proximity sensor'
                     }),
@@ -776,7 +777,7 @@ class Scratch3MartyBlocks {
                 {
                     opcode: 'm_set_blocking',
                     text: formatMessage({
-                        id: 'marty.blockingBloxk',
+                        id: 'marty.blockingBlock',
                         default: 'set blocking mode [BLOCK]',
                         description: 'Toggle Blocking Mode'
                     }),
@@ -792,17 +793,67 @@ class Scratch3MartyBlocks {
             ],
 
             menus: {
-                leg: MartyCoronalMenu,
-                turn_directions: MartyCoronalMenu,
-                directions: MartyTransverseMenu,
-                eyes: MartyEyesMenu,
-                gpios: MartyGPIOMenu,
-                motorCurrents: MartyMotorCurrentsMenu,
-                joints: MartyJointsMenu,
-                accel: MartyAccelMenu,
-                enabled: MartyEnabledMenu,
-                saggital: MartySaggitalMenu,
-                stopTypes: MartyStopTypesMenu
+                leg:   [
+                	{ text: formatMessage(messages.left),  value: 'left' },
+  					{ text: formatMessage(messages.right), value: 'right' }],
+                turn_directions: [
+                  	{ text: formatMessage(messages.left),  value: 'left' },
+  					{ text: formatMessage(messages.right), value: 'right' }],
+                directions: [
+  					{ text: formatMessage(messages.left),     value: 'left' },
+  					{ text: formatMessage(messages.right),    value: 'right' },
+  					{ text: formatMessage(messages.forward),  value: 'forward' },
+  					{ text: formatMessage(messages.backward), value: 'backward' }],
+                eyes: [
+ 					{ text: formatMessage(messages.normal),  value: 'normal' },
+  					{ text: formatMessage(messages.wide),    value: 'wide' },
+  					{ text: formatMessage(messages.angry),   value: 'angry' },
+  					{ text: formatMessage(messages.excited), value: 'excited' }],
+                gpios: [
+  					{ text: formatMessage(messages.gpio_0), value: '0'},
+  					{ text: formatMessage(messages.gpio_1), value: '1'},
+  					{ text: formatMessage(messages.gpio_2), value: '2'},
+  					{ text: formatMessage(messages.gpio_3), value: '3'},
+  					{ text: formatMessage(messages.gpio_4), value: '4'},
+  					{ text: formatMessage(messages.gpio_5), value: '5'},
+  					{ text: formatMessage(messages.gpio_6), value: '6'},
+  					{ text: formatMessage(messages.gpio_7), value: '7'}],
+                motorCurrents: [
+  					{ text: formatMessage(messages.right_hip),   value: 'right hip' },
+  					{ text: formatMessage(messages.right_twist), value: 'right twist' },
+  					{ text: formatMessage(messages.right_knee),  value: 'right knee' },
+  					{ text: formatMessage(messages.left_hip),    value: 'left hip' },
+  					{ text: formatMessage(messages.left_twist),  value: 'left twist' },
+  					{ text: formatMessage(messages.left_knee),   value: 'left knee' },
+  					{ text: formatMessage(messages.right_arm),   value: 'right arm' },
+  					{ text: formatMessage(messages.left_arm),    value: 'left arm' }],
+                joints: [
+  					{ text: formatMessage(messages.right_hip),   value: 'right hip' },
+  					{ text: formatMessage(messages.right_twist), value: 'right twist' },
+  					{ text: formatMessage(messages.right_knee),  value: 'right knee' },
+  					{ text: formatMessage(messages.left_hip),    value: 'left hip' },
+  					{ text: formatMessage(messages.left_twist),  value: 'left twist' },
+  					{ text: formatMessage(messages.left_knee),   value: 'left knee' },
+  					{ text: formatMessage(messages.right_arm),   value: 'right arm' },
+  					{ text: formatMessage(messages.left_arm),    value: 'left arm' },
+  					{ text: formatMessage(messages.eyes),        value: 'eyes' }],
+                accel: [
+  					{ text: formatMessage(messages.x_axis), value: 'X axis' },
+  					{ text: formatMessage(messages.y_axis), value: 'Y axis' },
+  					{ text: formatMessage(messages.z_axis), value: 'Z axis' }],
+                enabled: [
+  					{ text: formatMessage(messages.enabled),  value: 'enabled' },
+  					{ text: formatMessage(messages.disabled), value: 'disabled' }],
+                saggital: [
+  					{ text: formatMessage(messages.forward),  value: 'forward' },
+  					{ text: formatMessage(messages.backward), value: 'backward' }],
+                stopTypes: [
+  					{ text: formatMessage(messages.finish_move),       value: 0 },
+  					{ text: formatMessage(messages.freeze),            value: 1 },
+  					{ text: formatMessage(messages.disable_motors),    value: 2 },
+  					{ text: formatMessage(messages.return_to_zero),    value: 3 },
+  					{ text: formatMessage(messages.pause),             value: 4 },
+  					{ text: formatMessage(messages.pause_and_disable), value: 5 }]
             },
         };
     }

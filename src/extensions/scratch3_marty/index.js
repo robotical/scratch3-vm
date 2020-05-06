@@ -112,8 +112,10 @@ class MartyPeripheral {
         if (localIp != null){
             this._localIpFound = true;
             this._localIp = localIp.split('.').slice(0, -1).join('.');
+            this._lastScan = this._localIp;
         } else {
             this._localIpFound = false;
+            this._lastScan = '192.168.1';
             this._localIp = '192.168.0';
         }
         console.log('Local IP for Marty Peripheral is ' + this._localIp);
@@ -148,6 +150,8 @@ class MartyPeripheral {
     scan () {
         console.log("Scanning for Martys...");
 
+        var numMartys = this._availablePeripherals.length;
+        console.log(numMartys + ' Martys found');
         // Clear array and start a new scan:
         this._availablePeripherals = [];
 
@@ -174,6 +178,12 @@ class MartyPeripheral {
 		        .catch(err => {
 		        	this._scanTimeout = 20000;
 		            console.warn("er #2 Could not load list of Martys from command hub. Switching to old school IP Scan", err);           
+                    
+                    // if we're not finding Martys, alternate between the two most frequently used subnets
+                    if (!this._localIpFound && numMartys == 0){
+                        if (this._lastScan == '192.168.0'){this._localIp = '192.168.1';}
+                        else {this._localIp = '192.168.0';}
+                    }
 		            this._scanRange(this._localIp);
 			    });
 		            
@@ -215,7 +225,8 @@ class MartyPeripheral {
 
 
     _sendRequest (requestIp) {
-        fetch("http://" + requestIp + "/service-discovery")
+        var d = new Date();
+        fetch("http://" + requestIp + "/service-discovery?" + d.getTime())
             .then(res => res.text())
             .then(
                 (text) => {
@@ -267,10 +278,8 @@ class MartyPeripheral {
     	console.log("gonna scan " + ip);
         for (var i = 1; i < 255; i++) {
             this._sendRequest(ip + "." + i);
-        }
-        if (!this._localIpFound && ip == "192.168.0"){
-            this._scanRange('192.168.1');
-        }             
+        }         
+        this._lastScan = ip;
     }
 
     _scanForMartys (ip) {
