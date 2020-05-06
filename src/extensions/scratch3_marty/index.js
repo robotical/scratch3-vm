@@ -4,7 +4,7 @@ const log = require('../../util/log');
 const languageNames = require('scratch-translate-extension-languages');
 const MartyBlocks = require('./martyBlocks');
 const Marty = require('./marty');
-
+const formatMessage = require('format-message');
 
 // ----------------------------
 // local IP discovery tool from net.ipcalf.com
@@ -318,7 +318,11 @@ class MartyPeripheral {
      * Called by the runtime when user wants to connect to a specified peripheral.
      */
     add () {
-        var id = prompt('Please enter Marty\'s IP Address');
+        var id = prompt(formatMessage({
+          id: 'marty.enterIP',
+          default: 'Please enter Marty\'s IP Address',
+          description: 'Enter IP address'
+        }));
         this.connect(id);
     }
 
