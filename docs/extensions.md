@@ -119,6 +119,166 @@ class SomeBlocks {
     // ...
 }
 ```
+### Block Arguments
+In addition to displaying text, blocks can have arguments in the form of slots to take other blocks getting plugged in, or dropdown menus to select an argument value from a list of possible values.
+
+The possible types of block arguments are as follows:
+
+- String - a string input, this is a type-able field which also accepts other reporter blocks to be plugged in
+- Number - an input similar to the string input, but the type-able values are constrained to numbers.
+- Angle - an input similar to the number input, but it has an additional UI to be able to pick an angle from a
+circular dial
+- Boolean - an input for a boolean (hexagonal shaped) reporter block. This field is not type-able.
+- Color - an input which displays a color swatch. This field has additional UI to pick a color by choosing values for the color's hue, saturation and brightness. Optionally, the defaultValue for the color picker can also be chosen if the extension developer wishes to display the same color every time the extension is added. If the defaultValue is left out, the default behavior of picking a random color when the extension is loaded will be used.
+- Matrix - an input which displays a 5 x 5 matrix of cells, where each cell can be filled in or clear.
+- Note - a numeric input which can select a musical note. This field has additional UI to select a note from a
+visual keyboard.
+- Image - an inline image displayed on a block. This is a special argument type in that it does not represent a value and does not accept other blocks to be plugged-in in place of this block field. See the section below about "Adding an Inline Image".
+
+#### Adding an Inline Image
+In addition to specifying block arguments (an example of string arguments shown in the code snippet above),
+you can also specify an inline image for the block. You must include a dataURI for the image. If left unspecified, blank space will be allocated for the image and a warning will be logged in the console.
+You can optionally also specify `flipRTL`, a property indicating whether the image should be flipped horizontally when the editor has a right to left language selected as its locale. By default, the image is not flipped.
+
+```js
+return {
+    // ...
+    blocks: [
+        {
+            //...
+            arguments {
+                MY_IMAGE: {
+                    type: ArgumentType.IMAGE,
+                    dataURI: 'myImageData',
+                    alt: 'This is an image',
+                    flipRTL: true
+                }
+            }
+        }
+    ]
+}
+```
+
+
+
+
+#### Defining a Menu
+
+To display a drop-down menu for a block argument, specify the `menu` property of that argument and a matching item in
+the `menus` section of your extension's definition:
+
+```js
+return {
+    // ...
+    blocks: [
+        {
+            // ...
+            arguments: {
+                FOO: {
+                    type: ArgumentType.NUMBER,
+                    menu: 'fooMenu'
+                }
+            }
+        }
+    ],
+    menus: {
+        fooMenu: {
+            items: ['a', 'b', 'c']
+        }
+    }
+}
+```
+
+The items in a menu may be specified with an array or with the name of a function which returns an array. The two
+simplest forms for menu definitions are:
+
+```js
+getInfo () {
+    return {
+        menus: {
+            staticMenu: ['static 1', 'static 2', 'static 3'],
+            dynamicMenu: 'getDynamicMenuItems'
+        }
+    };
+}
+// this member function will be called each time the menu opens
+getDynamicMenuItems () {
+    return ['dynamic 1', 'dynamic 2', 'dynamic 3'];
+}
+```
+
+The examples above are shorthand for these equivalent definitions:
+
+```js
+getInfo () {
+    return {
+        menus: {
+            staticMenu: {
+                items: ['static 1', 'static 2', 'static 3']
+            },
+            dynamicMenu: {
+                items: 'getDynamicMenuItems'
+            }
+        }
+    };
+}
+// this member function will be called each time the menu opens
+getDynamicMenuItems () {
+    return ['dynamic 1', 'dynamic 2', 'dynamic 3'];
+}
+```
+
+If a menu item needs a label that doesn't match its value -- for example, if the label needs to be displayed in the
+user's language but the value needs to stay constant -- the menu item may be an object instead of a string. This works
+for both static and dynamic menu items:
+
+```js
+menus: {
+    staticMenu: [
+        {
+            text: formatMessage(/* ... */),
+            value: 42
+        }
+    ]
+}
+```
+
+##### Accepting reporters ("droppable" menus)
+
+By default it is not possible to specify the value of a dropdown menu by inserting a reporter block. While we
+encourage extension authors to make their menus accept reporters when possible, doing so requires careful
+consideration to avoid confusion and frustration on the part of those using the extension.
+
+A few of these considerations include:
+
+* The valid values for the menu should not change when the user changes the Scratch language setting.
+  * In particular, changing languages should never break a working project.
+* The average Scratch user should be able to figure out the valid values for this input without referring to extension
+  documentation.
+  * One way to ensure this is to make an item's text match or include the item's value. For example, the official Music
+    extension contains menu items with names like "(1) Piano" with value 1, "(8) Cello" with value 8, and so on.
+* The block should accept any value as input, even "invalid" values.
+  * Scratch has no concept of a runtime error!
+  * For a command block, sometimes the best option is to do nothing.
+  * For a reporter, returning zero or the empty string might make sense.
+* The block should be forgiving in its interpretation of inputs.
+  * For example, if the block expects a string and receives a number it may make sense to interpret the number as a
+    string instead of treating it as invalid input.
+
+The `acceptReporters` flag indicates that the user can drop a reporter onto the menu input:
+
+```js
+menus: {
+    staticMenu: {
+        acceptReporters: true,
+        items: [/*...*/]
+    },
+    dynamicMenu: {
+        acceptReporters: true,
+        items: 'getDynamicMenuItems'
+    }
+}
+```
 
 ## Annotated Example
 
@@ -151,6 +311,10 @@ class SomeBlocks {
             // Required: the machine-readable name of this extension.
             // Will be used as the extension's namespace.
             id: 'someBlocks',
+
+            // Core extensions only: override the default extension block colors.
+            color1: '#FF8C1A',
+            color2: '#DB6E00',
 
             // Optional: the human-readable name of this extension as string.
             // This and any other string to be displayed in the Scratch UI may either be
@@ -307,7 +471,16 @@ class SomeBlocks {
 
                 // Dynamic menu: returns an array as above.
                 // Called each time the menu is opened.
-                menuB: 'getItemsForMenuB'
+                menuB: 'getItemsForMenuB',
+
+                // The examples above are shorthand for setting only the `items` property in this full form:
+                menuC: {
+                    // This flag makes a "droppable" menu: the menu will allow dropping a reporter in for the input.
+                    acceptReporters: true,
+
+                    // The `item` property may be an array or function name as in previous menu examples.
+                    items: [/*...*/] || 'getItemsForMenuC'
+                }
             },
 
             // Optional: translations (UNSTABLE - NOT YET SUPPORTED)
