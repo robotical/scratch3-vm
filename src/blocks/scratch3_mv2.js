@@ -22,10 +22,21 @@ class Scratch3Mv2Blocks {
      */
     getPrimitives () {
         return {
+            mv2_demo_sensor: this.demo_sensor,
             mv2_wiggle:  this.wiggle,
             mv2_walk: this.walk,
+            mv2_set_demo_sensor: this.set_demo_sensor,
             mv2_set_ip: this.set_ip,
         };
+    }
+
+    demo_sensor(args, util){
+        return mv2.demo_sensor;
+    }
+
+    set_demo_sensor(args, util){
+        sensorval =parseFloat(args.SENSORVAL);
+        mv2.demo_sensor= sensorval;
     }
 
     set_ip(args, util){

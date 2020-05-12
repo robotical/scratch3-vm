@@ -7,6 +7,8 @@ class Marty2 {
     constructor () {
         //this.ip = '192.168.0.27';
         this.ip = null;
+
+        this.demo_sensor = 0;
     }
 
     send_REST(cmd){
@@ -28,6 +30,11 @@ class Marty2 {
     			console.log("Error sending to react native: " + err);
     		}    		
     	}
+    }
+
+    set_demo_sensor(sensorval){
+        sensorval = parseFloat(sensorval);
+        this.demo_sensor = sensorval;
     }
 
     set_ip(ip){
