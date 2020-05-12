@@ -184,6 +184,8 @@ class Scratch3MotionBlocks {
     }
 
     ifOnEdgeBounce (args, util) {
+        alert('bounce');
+        console.log('bounce');
         const bounds = util.target.getBounds();
         if (!bounds) {
             return;
