@@ -3,8 +3,17 @@ const MathUtil = require('../util/math-util');
 const Timer = require('../util/timer');
 const Marty2 = require('../util/mv2-rn');
 
+/**
+ * Questions:
+ * - what is the util parameter for?
+ * - what are the minimum moveTimes for various actions?
+ * - in the requirements (18/05) - "Lower Legs" and new dances are mentioned - do these require new API commands?
+ * - clarify reps - can be added to any function (and therefore block)?
+ */
+
 
 class Scratch3Mv2Blocks {
+
     constructor (runtime) {
         /**
          * The runtime instantiating this block package.
@@ -22,37 +31,276 @@ class Scratch3Mv2Blocks {
      */
     getPrimitives () {
         return {
+            // trajectory commands
+            mv2_walk: this.walk,
+            mv2_step: this.step,
+            mv2_sidestep: this.sidestep,
+            mv2_sidefall: this.sidefall,
+            mv2_wiggle: this.wiggle,
+            mv2_wave: this.wave,
+            mv2_waggleEyes: this.waggleEyes,
+            mv2_circle: this.circle,
+            mv2_stepLeft: this.stepLeft,
+            mv2_stepRight: this.stepRight,
+            mv2_kickLeft: this.kickLeft,
+            mv2_kickRight: this.kickRight,
+            mv2_sidestepLeft: this.sidestepLeft,
+            mv2_sidestepRight: this.sidestepRight,
+            mv2_circleLeft: this.circleLeft,
+            mv2_circleRight: this.circleRight,
+            mv2_waveLeft: this.waveLeft,
+            mv2_waveRight: this.waveRight,
+            mv2_standStraight: this.standStraight,
+            // misc/debugging commands
             mv2_demo_sensor: this.demo_sensor,
             mv2_set_demo_sensor: this.set_demo_sensor,
             mv2_set_ip: this.set_ip,
-            mv2_hello: this.hello,
-            mv2_stop: this.stop,
-            mv2_disable_motors: this.disable_motors,
-            mv2_enable_motors: this.enable_motors,
-            mv2_stand_straight: this.stand_straight,
-            mv2_wiggle:  this.wiggle,
-            mv2_circle_dance: this.circle_dance,
-            mv2_play_sound: this.play_sound,
-            mv2_walk: this.walk,
-            mv2_walkf: this.walkf,
-            mv2_walkb: this.walkb,
-            mv2_kick: this.kick,
-            mv2_turn: this.turn,
-            mv2_lean: this.lean,
-            mv2_sidestep: this.sidestep,
-            mv2_eyes: this.eyes,
-            mv2_lift_leg: this.lift_leg,
-            mv2_lower_leg_action: this.lower_leg_action,
-            mv2_lower_leg: this.lower_leg,
-            mv2_move_leg: this.move_leg,
-            mv2_move_joint: this.move_joint,
-            mv2_get_batt: this.get_batt,
-            mv2_get_gpio: this.get_gpio,
-            mv2_get_motor_current: this.get_motor_current,
-            mv2_get_accel: this.get_accel,
-            mv2_get_prox: this.get_prox,
-            mv2_set_blocking: this.set_blocking,
         };
+    }
+
+    // Functions for trajectory commands expected by Marty's REST API
+
+    walk(args, util) {
+        let moveTime = parseFloat(args.MOVETIME) * 1000;
+        if (moveTime < 500) moveTime = 500;
+        let turn = parseInt(args.TURN);
+        turn = Math.min(Math.max(turn,-100),100);
+        let steps = parseInt(args.STEPS);
+        steps = Math.min(Math.max(steps, 1), 20);
+        let stepLength = parseInt(args.STEPLEN);
+        stepLength = Math.min(Math.max(stepLength,-100),100);
+        console.log("traj/step/?moveTime=" + moveTime + ";reps=" + steps + ";turn=" + turn + ";stepLength=" + stepLength);
+        // mv2.send_REST("traj/step/?moveTime=" + moveTime + ";reps=" + steps + ";turn=" + turn + ";stepLength=" + stepLength);
+        return new Promise((resolve) =>
+            setTimeout(resolve, moveTime*steps));
+    }
+
+    step(args, util) {
+        let moveTime = parseFloat(args.MOVETIME) * 1000;
+        // minimum?
+        let stepLength = parseInt(args.STEPLEN);
+        stepLength = Math.min(Math.max(stepLength,-100),100);
+        let turn = parseInt(args.TURN);
+        turn = Math.min(Math.max(turn,-100),100);
+        console.log("traj/step/?reps=" + steps + ";moveTime=" + moveTime + ";stepLength=" + stepLength + ";turn=" + turn);
+        // mv2.send_REST("traj/step/?reps=" + steps + ";moveTime=" + moveTime + ";stepLength=" + stepLength + ";turn=" + turn);
+        return new Promise((resolve) =>
+            setTimeout(resolve, moveTime*steps));
+    }
+
+    kick(args, util) {
+        let moveTime = parseFloat(args.MOVETIME) * 1000;
+        // minimum?
+        let side = args.SIDE;
+        if (side === 'left') {
+            side = 0;
+        } else {
+            side = 1;
+        }
+        let turn = parseInt(args.TURN);
+        turn = Math.min(Math.max(turn,-100),100);
+        console.log("traj/kick/?moveTime" + moveTime + ";side=" + side + ";turn=" + turn);
+        // mv2.send_REST("traj/kick/?moveTime" + moveTime + ";side=" + side + ";turn=" + turn);
+        return new Promise((resolve) =>
+            setTimeout(resolve, moveTime));
+    }
+
+    sidestep(args, util) {
+        let moveTime = parseFloat(args.MOVETIME) * 1000;
+        // minimum?
+        let stepLength = parseInt(args.STEPLEN);
+        stepLength = Math.min(Math.max(stepLength,-100),100);
+        let side = args.SIDE;
+        if (side === 'left') {
+            side = 0;
+        } else {
+            side = 1;
+        }
+        console.log("traj/sidestep/?moveTime" + moveTime + ";stepLength=" + stepLength + ";side=" + side);
+        // mv2.send_REST("traj/sidestep/?moveTime" + moveTime + ";stepLength=" + stepLength + ";side=" + side);
+        return new Promise((resolve) =>
+            setTimeout(resolve, moveTime));
+    }
+
+    sidefall(args, util) {
+        let moveTime = parseFloat(args.MOVETIME) * 1000;
+        // minimum?
+        let stepLength = parseInt(args.STEPLEN);
+        stepLength = Math.min(Math.max(stepLength,-100),100);
+        let side = args.SIDE;
+        if (side === 'left') {
+            side = 0;
+        } else {
+            side = 1;
+        }
+        console.log("traj/sidefall/?moveTime" + moveTime + ";stepLength=" + stepLength + ";side=" + side);
+        // mv2.send_REST("traj/sidefall/?moveTime" + moveTime + ";stepLength=" + stepLength + ";side=" + side);
+        return new Promise((resolve) =>
+            setTimeout(resolve, moveTime));
+    }
+
+    wiggle (args, util) {
+        let moveTime = parseFloat(args.MOVETIME) * 1000;
+        if (moveTime < 1500) {
+            moveTime = 1500;
+        }
+        console.log("traj/wiggle/?moveTime=" + moveTime);
+        // mv2.send_REST("traj/wiggle/?moveTime=" + moveTime);
+        return new Promise((resolve) =>
+            setTimeout(resolve, moveTime));
+    }
+
+    wave(args, util) {
+        let moveTime = parseFloat(args.MOVETIME) * 1000;
+        // minimum?
+        let side = args.SIDE;
+        // why is side defined differently for wave as opposed to other commands?
+        if (!(side === 'left' || side === 'right')) {
+            side = null;
+        }
+        console.log("traj/wave/?moveTime=" + movetime + ";side=" + side);
+        // mv2.send_REST("traj/wave/?moveTime=" + movetime + ";side=" + side);
+        return new Promise((resolve) =>
+            setTimeout(resolve, moveTime));
+    }
+
+    waggleEyes(args, util) {
+        let moveTime = parseFloat(args.MOVETIME) * 1000;
+        // minimum?
+        console.log("traj/waggleEyes/?moveTime=" + moveTime);
+        // mv2.send_REST("traj/waggleEyes/?moveTime=" + moveTime);
+        return new Promise((resolve) =>
+            setTimeout(resolve, moveTime));
+    }
+
+    circle(args, util) {
+        let moveTime = parseFloat(args.MOVETIME) * 1000;
+        // minimum?
+        let side = args.SIDE;
+        if (side === 'left') {
+            side = 0;
+        } else {
+            side = 1;
+        }
+        console.log("traj/circle/?moveTime=" + moveTime + ";side=" + side);
+        // mv2.send_REST("traj/circle/?moveTime=" + moveTime + ";side=" + side);
+        return new Promise((resolve) =>
+            setTimeout(resolve, moveTime));
+    }
+
+    stepLeft(args, util) {
+        let moveTime = parseFloat(args.MOVETIME) * 1000;
+        // minimum?
+        let stepLength = parseInt(args.STEPLEN);
+        stepLength = Math.min(Math.max(stepLength,-100),100);
+        let turn = parseInt(args.TURN);
+        turn = Math.min(Math.max(turn,-100),100);
+        console.log("traj/stepLeft/?moveTime=" + moveTime + ";stepLength=" + stepLength + ";turn=" + turn);
+        // mv2.send_REST("traj/stepLeft/?moveTime=" + moveTime + ";stepLength=" + stepLength + ";turn=" + turn);
+        return new Promise((resolve) =>
+            setTimeout(resolve, moveTime));
+    }
+
+    stepRight(args, util) {
+        let moveTime = parseFloat(args.MOVETIME) * 1000;
+        // minimum?
+        let stepLength = parseInt(args.STEPLEN);
+        stepLength = Math.min(Math.max(stepLength,-100),100);
+        let turn = parseInt(args.TURN);
+        turn = Math.min(Math.max(turn,-100),100);
+        console.log("traj/stepRight/?moveTime=" + moveTime + ";stepLength=" + stepLength + ";turn=" + turn);
+        // mv2.send_REST("traj/stepRight/?moveTime=" + moveTime + ";stepLength=" + stepLength + ";turn=" + turn);
+        return new Promise((resolve) =>
+            setTimeout(resolve, moveTime));
+    }
+
+    kickLeft(args, util) {
+        let moveTime = parseFloat(args.MOVETIME) * 1000;
+        // minimum?
+        let turn = parseInt(args.TURN);
+        turn = Math.min(Math.max(turn,-100),100);
+        console.log("traj/kickLeft/?moveTime=" + moveTime + ";turn=" + turn);
+        // mv2.send_REST("traj/kickLeft/?moveTime=" + moveTime + ";turn=" + turn);
+        return new Promise((resolve) =>
+            setTimeout(resolve, moveTime));
+    }
+
+    kickRight(args, util) {
+        let moveTime = parseFloat(args.MOVETIME) * 1000;
+        // minimum?
+        let turn = parseInt(args.TURN);
+        turn = Math.min(Math.max(turn,-100),100);
+        console.log("traj/kickRight/?moveTime=" + moveTime + ";turn=" + turn);
+        // mv2.send_REST("traj/kickRight/?moveTime=" + moveTime + ";turn=" + turn);
+        return new Promise((resolve) =>
+            setTimeout(resolve, moveTime));
+    }
+
+    sidestepLeft(args, util) {
+        let moveTime = parseFloat(args.MOVETIME) * 1000;
+        // minimum?
+        let stepLength = parseInt(args.STEPLEN);
+        stepLength = Math.min(Math.max(stepLength,-100),100);
+        console.log("traj/sidestepLeft/?moveTime=" + moveTime + ";stepLength=" + stepLength);
+        // mv2.send_REST("traj/sidestepLeft/?moveTime=" + moveTime + ";stepLength=" + stepLength);
+        return new Promise((resolve) =>
+            setTimeout(resolve, moveTime));
+    }
+
+    sidestepRight(args, util) {
+        let moveTime = parseFloat(args.MOVETIME) * 1000;
+        // minimum?
+        let stepLength = parseInt(args.STEPLEN);
+        stepLength = Math.min(Math.max(stepLength,-100),100);
+        console.log("traj/sidestepRight/?moveTime=" + moveTime + ";stepLength=" + stepLength);
+        // mv2.send_REST("traj/sidestepRight/?moveTime=" + moveTime + ";stepLength=" + stepLength);
+        return new Promise((resolve) =>
+            setTimeout(resolve, moveTime));
+    }
+
+    circleLeft(args, util) {
+        let moveTime = parseFloat(args.MOVETIME) * 1000;
+        // minimum?
+        console.log("traj/circleLeft/?moveTime=" + moveTime);
+        // mv2.send_REST("traj/circleLeft/?moveTime=" + moveTime);
+        return new Promise((resolve) =>
+            setTimeout(resolve, moveTime));
+    }
+
+    circleRight(args, util) {
+        let moveTime = parseFloat(args.MOVETIME) * 1000;
+        // minimum?
+        console.log("traj/circleRight/?moveTime=" + moveTime);
+        // mv2.send_REST("traj/circleRight/?moveTime=" + moveTime);
+        return new Promise((resolve) =>
+            setTimeout(resolve, moveTime));
+    }
+
+    waveLeft(args, util) {
+        let moveTime = parseFloat(args.MOVETIME) * 1000;
+        // minimum?
+        console.log("traj/waveLeft/?moveTime=" + moveTime);
+        // mv2.send_REST("traj/waveLeft/?moveTime=" + moveTime);
+        return new Promise((resolve) =>
+            setTimeout(resolve, moveTime));
+    }
+
+    waveRight(args, util) {
+        let moveTime = parseFloat(args.MOVETIME) * 1000;
+        // minimum?
+        console.log("traj/waveRight/?moveTime=" + moveTime);
+        // mv2.send_REST("traj/waveRight/?moveTime=" + moveTime);
+        return new Promise((resolve) =>
+            setTimeout(resolve, moveTime));
+    }
+
+    standStraight(args, util) {
+        let moveTime = parseFloat(args.MOVETIME) * 1000;
+        // minimum?
+        console.log("traj/standStraight/?moveTime=" + moveTime);
+        // mv2.send_REST("traj/standStraight/?moveTime=" + moveTime);
+        return new Promise((resolve) =>
+            setTimeout(resolve, moveTime));
     }
 
     demo_sensor(args, util){
@@ -60,103 +308,13 @@ class Scratch3Mv2Blocks {
     }
 
     set_demo_sensor(args, util){
-        sensorval = parseFloat(args.SENSORVAL);
+        let sensorval = parseFloat(args.SENSORVAL);
         mv2.demo_sensor= sensorval;
     }
 
     set_ip(args, util){
         mv2.set_ip(args.IP);
     }
-
-    hello(args, util) {
-        // TODO: what is hello built in command?
-    }
-
-    stop(args, util) {
-        // TODO: what is stop built in command?
-    }
-
-    disable_motors(args, util) {
-        // TODO: what bic?
-    }
-
-    enable_motors(args, util) {
-        // TODO: what bic?
-    }
-
-    stand_straight(args, util) {
-        movetime = parseFloat(args.MOVETIME) * 1000;
-        // what is the minimum time to stand straight?
-        if (movetime < 500) {
-            movetime = 500;
-        }
-        console.log("traj/standStraight/?moveTime=" + movetime);
-        // mv2.send()
-        return new Promise((resolve) => setTimeout(resolve, movetime));
-    }
-
-    wiggle (args, util) {
-        movetime = parseFloat(args.MOVETIME) * 1000;
-        if (movetime < 1500) movetime = 1500;
-        mv2.send_REST("traj/wiggle/?moveTime=" + movetime);
-        console.log('wiggle');
-        return new Promise((resolve) =>
-            setTimeout(resolve, movetime));
-    }
-
-    circle_dance (args, util) {
-        direction = args.DIRECTION;
-        // TODO: which cirle command to use? all 3?
-    }
-
-    play_sound (args, util) {
-        // TODO: look up sound API commands
-    }
-
-    walk(args, util){
-        movetime = parseFloat(args.MOVETIME) * 1000;
-        if (movetime < 500) movetime = 500;
-        turn = parseInt(args.TURN);
-        turn = Math.min(Math.max(turn,-100),100);
-        steps = parseInt(args.STEPS);
-        steps = Math.min(Math.max(steps, 1), 20);
-        steplength = parseInt(args.STEPLENGTH);
-        steplength = Math.min(Math.max(steplength,-100),100);
-        console.log("traj/step/?moveTime=" + movetime + ";reps=" + steps + ";turn=" + turn + ";stepLength=" + steplength);
-        // mv2.send_REST("traj/step/?moveTime=" + movetime + ";reps=" + steps + ";turn=" + turn + ";stepLength=" + steplength);
-        return new Promise((resolve) =>
-            setTimeout(resolve, movetime*steps));
-    }
-
-    walkf(args, util) {
-        movetime = 1500;
-        turn = 0;
-        steps = parseInt(args.NUMSTEPS);
-        steplength = 45;
-        console.log("traj/step/?moveTime=" + movetime + ";reps=" + steps + ";turn=" + turn + ";stepLength=" + steplength);
-        //mv2.send_REST();
-        return new Promise((resolve) => setTimeout(resolve, movetime*steps));
-    }
-
-    walkb(args, util) {
-        movetime = 1500;
-        turn = 0;
-        steps = parseInt(args.NUMSTEPS);
-        steplength = -45;
-        console.log("traj/step?moveTime=" + movetime + ";reps=" + steps + ";turn=" + turn + ";stepLength=" + steplength);
-        //mv2.send_REST();
-        return new Promise((resolve) => setTimeout(resolve, movetime*steps));
-    }
-
-    kick(args, util) {
-        side = args.SIDE;
-        // TODO: what options should scratch allow?
-    }
-
-    turn
-
-
-
 
 }
 
