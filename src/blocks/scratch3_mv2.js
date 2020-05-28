@@ -34,6 +34,7 @@ class Scratch3Mv2Blocks {
             // trajectory commands
             mv2_walk: this.walk,
             mv2_step: this.step,
+            mv2_kick: this.kick,
             mv2_sidestep: this.sidestep,
             mv2_sidefall: this.sidefall,
             mv2_wiggle: this.wiggle,
@@ -82,10 +83,10 @@ class Scratch3Mv2Blocks {
         stepLength = Math.min(Math.max(stepLength,-100),100);
         let turn = parseInt(args.TURN);
         turn = Math.min(Math.max(turn,-100),100);
-        console.log("traj/step/?reps=" + steps + ";moveTime=" + moveTime + ";stepLength=" + stepLength + ";turn=" + turn);
-        // mv2.send_REST("traj/step/?reps=" + steps + ";moveTime=" + moveTime + ";stepLength=" + stepLength + ";turn=" + turn);
+        console.log("traj/step/?moveTime=" + moveTime + ";stepLength=" + stepLength + ";turn=" + turn);
+        // mv2.send_REST("traj/step/?moveTime=" + moveTime + ";stepLength=" + stepLength + ";turn=" + turn);
         return new Promise((resolve) =>
-            setTimeout(resolve, moveTime*steps));
+            setTimeout(resolve, moveTime));
     }
 
     kick(args, util) {
@@ -99,7 +100,7 @@ class Scratch3Mv2Blocks {
         }
         let turn = parseInt(args.TURN);
         turn = Math.min(Math.max(turn,-100),100);
-        console.log("traj/kick/?moveTime" + moveTime + ";side=" + side + ";turn=" + turn);
+        console.log("traj/kick/?moveTime=" + moveTime + ";side=" + side + ";turn=" + turn);
         // mv2.send_REST("traj/kick/?moveTime" + moveTime + ";side=" + side + ";turn=" + turn);
         return new Promise((resolve) =>
             setTimeout(resolve, moveTime));
