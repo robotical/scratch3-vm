@@ -49,9 +49,9 @@ class Scratch3Mv2Blocks {
             mv2_sidestepRight: this.sidestepRight,
             mv2_circleLeft: this.circleLeft,
             mv2_circleRight: this.circleRight,
-            // mv2_waveLeft: this.waveLeft,
-            // mv2_waveRight: this.waveRight,
-            // mv2_standStraight: this.standStraight,
+            mv2_waveLeft: this.waveLeft,
+            mv2_waveRight: this.waveRight,
+            mv2_standStraight: this.standStraight,
             // misc/debugging commands
             mv2_demo_sensor: this.demo_sensor,
             mv2_set_demo_sensor: this.set_demo_sensor,
@@ -277,32 +277,32 @@ class Scratch3Mv2Blocks {
             setTimeout(resolve, moveTime));
     }
 
-    /*waveLeft(args, util) {
+    waveLeft(args, util) {
         let moveTime = parseFloat(args.MOVETIME) * 1000;
         // minimum?
         console.log("traj/waveLeft/?moveTime=" + moveTime);
         // mv2.send_REST("traj/waveLeft/?moveTime=" + moveTime);
         return new Promise((resolve) =>
             setTimeout(resolve, moveTime));
-    }*/
+    }
 
-    /*waveRight(args, util) {
+    waveRight(args, util) {
         let moveTime = parseFloat(args.MOVETIME) * 1000;
         // minimum?
         console.log("traj/waveRight/?moveTime=" + moveTime);
         // mv2.send_REST("traj/waveRight/?moveTime=" + moveTime);
         return new Promise((resolve) =>
             setTimeout(resolve, moveTime));
-    }*/
+    }
 
-    /*standStraight(args, util) {
+    standStraight(args, util) {
         let moveTime = parseFloat(args.MOVETIME) * 1000;
         // minimum?
         console.log("traj/standStraight/?moveTime=" + moveTime);
         // mv2.send_REST("traj/standStraight/?moveTime=" + moveTime);
         return new Promise((resolve) =>
             setTimeout(resolve, moveTime));
-    }*/
+    }
 
     demo_sensor(args, util){
         return mv2.demo_sensor;
