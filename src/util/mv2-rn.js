@@ -12,8 +12,11 @@ class MartyStatus {
      * -    fetch hwstatus/mindata/name
      * -    store at this.name
      * - and then we can access at mv2.status.name.property
+     * OR:
+     * - FETCH THE NAMES
+     * - THEN TRIGGERING BLOCKS REQUESTS THE INFORMATION
+     * - YEAH?
      * The problem:
-     *
      *
      * - TODO: link to blocks
      * - how often to refresh?
@@ -49,25 +52,24 @@ class Marty2 {
     send_REST (cmd) {
         // eslint-disable-next-line no-console
         console.log(`Marty REST command: ${cmd}`);
-        if (this.ip !== null){
-            fetch(`http://${this.ip}/api/${cmd}`)
-                .then(response => {
-                    if (response.ok){
-                        return response.json();
-                    }
-                    const resp = response;
-                    console.warn('Response not ok', resp.ok);
-                })
-                .catch(err => {
-                    console.warn('er #2', err);
-                });
-        } else {
-            try {
-                window.ReactNativeWebView.postMessage(cmd);
-            } catch (err) {
-                // eslint-disable-next-line no-console
-                console.log(`Error sending to react native: ${err}`);
-            }
+        //        if (this.ip !== null){
+        //            fetch(`http://${this.ip}/api/${cmd}`)
+        //                 .then(response => {
+        //                     if (response.ok)
+        //                         return response.json();
+        //                     }
+        //                     const resp = response;
+        //                     console.warn('Response not ok', resp.ok);
+        //                 })
+        //                 .catch(err => {
+        //                     console.warn('er #2', err);
+        //                 });
+        //        } else {
+        try {
+            window.ReactNativeWebView.postMessage(cmd); // this call triggers onMessage in the app
+        } catch (err) {
+            // eslint-disable-next-line no-console
+            console.log(`Error sending to react native: ${err}`);
         }
     }
 

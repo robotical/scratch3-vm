@@ -13,18 +13,11 @@ const Marty2 = require('../util/mv2-rn');
  * Missing/non-functional Blocks:
  * - get ready (is this still necessary?)
  * - stop - what are various stop options (and what are the appropriate API calls?)
- * - play sound
- * - eyes <emotion>
  * - lift/lower legs - API calls?
- * - move arms (other than wave?)
  * - Battery voltage
- * - GPIO in
- * - current
- * - accelerometer
- * - proximity
+ * - GPIO in (do we need this?)
  * - blocking mode (???)
  */
-
 
 class Scratch3Mv2Blocks {
 
@@ -35,7 +28,6 @@ class Scratch3Mv2Blocks {
          */
         this.runtime = runtime;
         // this.ip ="192.168.0.27";
-
         mv2 = new Marty2();
     }
 
@@ -48,7 +40,6 @@ class Scratch3Mv2Blocks {
             // motion commands
 
             mv2_getReady: this.getReady,
-
             mv2_walk_fw: this.walk_fw,
             mv2_walk_bw: this.walk_bw,
             mv2_walk: this.walk,
@@ -59,42 +50,50 @@ class Scratch3Mv2Blocks {
             mv2_lean: this.lean,
             mv2_slide: this.slide,
             mv2_eyes: this.eyes,
-            mv2_sidefall: this.sidefall,
+            mv2_moveLeg: this.moveLeg,
+            mv2_liftFoot: this.liftFoot,
+            mv2_lowerFoot: this.lowerFoot,
+            mv2_moveJoint: this.moveJoint,
             mv2_wave: this.wave,
             mv2_waggleEyes: this.waggleEyes,
-            mv2_stepLeft: this.stepLeft,
-            mv2_stepRight: this.stepRight,
-            mv2_sidestepLeft: this.sidestepLeft,
-            mv2_sidestepRight: this.sidestepRight,
-            mv2_circleLeft: this.circleLeft,
-            mv2_circleRight: this.circleRight,
-            mv2_waveLeft: this.waveLeft,
-            mv2_waveRight: this.waveRight,
+            mv2_dance: this.dance,
+
+            // sensors
+
+            mv2_position: this.position,
+            mv2_current: this.current,
+            mv2_accelerometer: this.accelerometer,
+            mv2_proximity: this.proximity,
+            mv2_batteryLevel: this.batteryLevel,
 
             // sound commands
 
-            mv2_playsound: this.playsound,
+            mv2_playSound: this.playSound,
 
             // misc/debugging commands (including proposed/deprecated blocks)
 
-            mv2_stop: this.stop,
-            mv2_standStraight: this.standStraight,
             mv2_demo_sensor: this.demo_sensor,
             mv2_set_demo_sensor: this.set_demo_sensor,
             mv2_set_ip: this.set_ip
 
             /* mv2_kickLeft: this.kickLeft,
+            mv2_standStraight: this.standStraight,
+            mv2_sidefall: this.sidefall,
+            mv2_stepLeft: this.stepLeft,
+            mv2_stepRight: this.stepRight,
+            mv2_sidestepLeft: this.sidestepLeft,
+            mv2_sidestepRight: this.sidestepRight,
+            mv2_circleLeft: this.circleLeft,
+            mv2_stop: this.stop,
+            mv2_circleRight: this.circleRight,
+            mv2_waveLeft: this.waveLeft,
+            mv2_waveRight: this.waveRight,
             mv2_kickRight: this.kickRight, */
 
         };
     }
 
-    // Functions for trajectory commands expected by Marty's REST API
-
-    stop (args, util) {
-        console.log('Freeze!');
-        return;
-    }
+    // MOTION
 
     getReady (args, util) {
         console.log('Ready, set, go!');
@@ -174,7 +173,7 @@ class Scratch3Mv2Blocks {
 
     kick (args, util) {
         const moveTime = 1500;
-        let side = args.SIDE;
+        const side = args.SIDE;
 
         /* let turn = parseInt(args.TURN);      // proposed optional parameter
         turn = Math.min(Math.max(turn, -100), 100); */
@@ -214,16 +213,98 @@ class Scratch3Mv2Blocks {
             setTimeout(resolve));
     }
 
-    standStraight (args, util) {
-        const moveTime = parseFloat(args.MOVETIME) * 1000;
-        // minimum?
-        console.log(`traj/standStraight/?moveTime=${moveTime}`);
-        mv2.send_REST(`traj/standStraight/?moveTime=${moveTime}`);
+    moveLeg (args, util) {
+        console.log('Move legs!');
+        /* const moveTime = 1000;
+        const side = args.SIDE;
+        const direction = args.DIRECTION;
+        console.log(`traj/joint/1/?jointID=${side};angle=${direction};moveTime=${moveTime}`);
+        mv2.send_REST(`traj/joint/1/?jointID=${side};angle=${direction};moveTime=${moveTime}`);
         return new Promise(resolve =>
-            setTimeout(resolve, moveTime));
+            setTimeout(resolve, moveTime));*/
+        return;
     }
 
-    playsound(args, util) {
+    liftFoot (args, util) {
+        const side = args.SIDE;
+        console.log(`traj/liftFoot/1/?side=${side}`);
+        mv2.send_REST(`traj/liftFoot/1/?side=${side}`);
+        return new Promise(resolve =>
+            setTimeout(resolve));
+    }
+
+    lowerFoot (args, util) {
+        const side = args.SIDE;
+        console.log(`traj/lowerFoot/1/?side=${side}`);
+        mv2.send_REST(`traj/lowerFoot/1/?side=${side}`);
+        return new Promise(resolve =>
+            setTimeout(resolve));
+    }
+
+    moveJoint (args, util) {
+        console.log('Move joints!');
+        // eslint-disable-next-line no-warning-comments
+        /* let moveTime = parseFloat(args.MOVETIME) * 1000;
+        moveTime = Math.min(Math.max(moveTime, 1), 10000);
+        const jointID = args.JOINTID;
+        const angle = args.ANGLE;
+        // TODO: set sensible limits
+        console.log(`traj/joint/1/?jointID=${jointID};angle=${angle};moveTime=${moveTime}`);
+        mv2.send_REST(`traj/joint/1/?jointID=${jointID};angle=${angle};moveTime=${moveTime}`);
+        return new Promise(resolve =>
+            setTimeout(resolve, moveTime));*/
+        return;
+    }
+
+    wave (args, util) {
+        const side = args.SIDE;
+        console.log(`traj/wave/1/?side=${side}`);
+        mv2.send_REST(`traj/wave/1/?side=${side}`);
+        return new Promise(resolve =>
+            setTimeout(resolve));
+    }
+
+    waggleEyes (args, util) {
+        console.log(`traj/waggleEyes`);
+        mv2.send_REST(`traj/waggleEyes`);
+        return new Promise(resolve =>
+            setTimeout(resolve));
+    }
+
+    dance (args, util) {
+        console.log('Let\'s dance!');
+    }
+
+    // SENSORS
+
+    position (args, util) {
+        console.log("Report a servo's position!");
+        return;
+    }
+
+    current (args, util) {
+        console.log("Report a servo's current!");
+        return;
+    }
+
+    accelerometer (args, util) {
+        console.log('Report accelerometer reading!');
+        return;
+    }
+
+    proximity (args, util) {
+        console.log('Report proximity!');
+        return;
+    }
+
+    batteryLevel (args, util) {
+        console.log('Report the battery percentage!');
+        return;
+    }
+
+    // SOUND
+
+    playSound(args, util) {
         const filename = args.FILENAME;
         console.log(`api/filerun/${filename}`);
         mv2.send_REST(`api/filerun/${filename}`);
@@ -231,48 +312,18 @@ class Scratch3Mv2Blocks {
             setTimeout(resolve));
     }
 
-    sidefall (args, util) {
+    // MISC/PROPOSED/DEPRECATED
+
+    /* standStraight (args, util) {
         const moveTime = parseFloat(args.MOVETIME) * 1000;
         // minimum?
-        let stepLength = parseInt(args.STEPLEN);
-        stepLength = Math.min(Math.max(stepLength, -100), 100);
-        let side = args.SIDE;
-        if (side === 'left') {
-            side = 0;
-        } else {
-            side = 1;
-        }
-        console.log(`traj/sidefall/?moveTime${moveTime};stepLength=${stepLength};side=${side}`);
-        mv2.send_REST(`traj/sidefall/?moveTime${moveTime};stepLength=${stepLength};side=${side}`);
+        console.log(`traj/standStraight/?moveTime=${moveTime}`);
+        mv2.send_REST(`traj/standStraight/?moveTime=${moveTime}`);
         return new Promise(resolve =>
             setTimeout(resolve, moveTime));
-    }
+    }*/
 
-
-    wave (args, util) {
-        const moveTime = parseFloat(args.MOVETIME) * 1000;
-        // minimum?
-        let side = args.SIDE;
-        // why is side defined differently for wave as opposed to other commands?
-        if (!(side === 'left' || side === 'right')) {
-            side = null;
-        }
-        console.log(`traj/wave/?moveTime=${moveTime};side=${side}`);
-        mv2.send_REST(`traj/wave/?moveTime=${movetime};side=${side}`);
-        return new Promise(resolve =>
-            setTimeout(resolve, moveTime));
-    }
-
-    waggleEyes (args, util) {
-        const moveTime = parseFloat(args.MOVETIME) * 1000;
-        // minimum?
-        console.log(`traj/waggleEyes/?moveTime=${moveTime}`);
-        mv2.send_REST(`traj/waggleEyes/?moveTime=${moveTime}`);
-        return new Promise(resolve =>
-            setTimeout(resolve, moveTime));
-    }
-
-    stepLeft (args, util) {
+    /* stepLeft (args, util) {
         const moveTime = parseFloat(args.MOVETIME) * 1000;
         // minimum?
         let stepLength = parseInt(args.STEPLENGTH);
@@ -296,7 +347,7 @@ class Scratch3Mv2Blocks {
         mv2.send_REST(`traj/stepRight/?moveTime=${moveTime};stepLength=${stepLength};turn=${turn}`);
         return new Promise(resolve =>
             setTimeout(resolve, moveTime));
-    }
+    }*/
 
     /* kickLeft (args, util) {
         const moveTime = parseFloat(args.MOVETIME) * 1000;
@@ -320,7 +371,7 @@ class Scratch3Mv2Blocks {
             setTimeout(resolve, moveTime));
     } */
 
-    sidestepLeft (args, util) {
+    /* sidestepLeft (args, util) {
         const moveTime = parseFloat(args.MOVETIME) * 1000;
         // minimum?
         let stepLength = parseInt(args.STEPLENGTH);
@@ -376,7 +427,29 @@ class Scratch3Mv2Blocks {
         mv2.send_REST(`traj/waveRight/?moveTime=${moveTime}`);
         return new Promise(resolve =>
             setTimeout(resolve, moveTime));
-    }
+    }*/
+
+    /* sidefall (args, util) {
+        const moveTime = parseFloat(args.MOVETIME) * 1000;
+        // minimum?
+        let stepLength = parseInt(args.STEPLEN);
+        stepLength = Math.min(Math.max(stepLength, -100), 100);
+        let side = args.SIDE;
+        if (side === 'left') {
+            side = 0;
+        } else {
+            side = 1;
+        }
+        console.log(`traj/sidefall/?moveTime${moveTime};stepLength=${stepLength};side=${side}`);
+        mv2.send_REST(`traj/sidefall/?moveTime${moveTime};stepLength=${stepLength};side=${side}`);
+        return new Promise(resolve =>
+            setTimeout(resolve, moveTime));
+    }*/
+
+    /* stop (args, util) {
+        console.log('Freeze!');
+        return;
+    }*/
 
     demo_sensor (args, util) {
         console.log('hi');
