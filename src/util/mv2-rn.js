@@ -3,55 +3,21 @@
  * Functions for interacting with Marty v2 via a REST interface
  */
 
-class MartyStatus {
-
-    /**
-     * The idea:
-     * - fetch json at hwstatus/name for list of hardware elements
-     * - for name in names:
-     * -    fetch hwstatus/mindata/name
-     * -    store at this.name
-     * - and then we can access at mv2.status.name.property
-     * OR:
-     * - FETCH THE NAMES
-     * - THEN TRIGGERING BLOCKS REQUESTS THE INFORMATION
-     * - YEAH?
-     * The problem:
-     *
-     * - TODO: link to blocks
-     * - how often to refresh?
-     * - TODO: once this is all working over ip, handle with BLE and the app (w/ JS->RN prop)
-     */
-
-    constructor (ipAddress) {
-
-        this.hwlist = [];
-
-        // gather some simple proof-of-concept servo info
-        // this allows us to list hardware elements in the console ( console.log(mv2.status.hwlist) )
-
-        fetch(`http://${ipAddress}/api/hwstatus/name`).then(response => response.json())
-            .then(data => {
-                for (const name of data.hw) {
-                    this.hwlist.push(name);
-                }
-            }
-            );
-    }
-}
-
 class Marty2 {
     constructor () {
         this.ip = '192.168.1.171';
         // this.ip = null;
-        this.status = new MartyStatus(this.ip);
         this.demo_sensor = 0;
+        this.power = 0;
+        this.servos = 0;
+        this.accel = 0;
     }
 
     // eslint-disable-next-line camelcase
     send_REST (cmd) {
-        // eslint-disable-next-line no-console
+        // eslint-disable-next-line no-console,no-alert
         console.log(`Marty REST command: ${cmd}`);
+        // eslint-disable-next-line no-alert
         //        if (this.ip !== null){
         //            fetch(`http://${this.ip}/api/${cmd}`)
         //                 .then(response => {
