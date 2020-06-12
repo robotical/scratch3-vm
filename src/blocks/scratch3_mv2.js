@@ -55,7 +55,6 @@ class Scratch3Mv2Blocks {
             mv2_lowerFoot: this.lowerFoot,
             mv2_moveJoint: this.moveJoint,
             mv2_wave: this.wave,
-            mv2_waggleEyes: this.waggleEyes,
             mv2_dance: this.dance,
 
             // sensors
@@ -106,8 +105,8 @@ class Scratch3Mv2Blocks {
         let steps = parseInt(args.STEPS);
         steps = Math.min(Math.max(steps, 1), 20);
         const stepLength = 25;
-        console.log(`traj/step/${steps}/?moveTime=${moveTime};stepLength=${stepLength}`);
-        mv2.send_REST(`traj/step/${steps}/?moveTime=${moveTime};stepLength=${stepLength}`);
+        console.log(`traj/step/${steps}/?moveTime=${moveTime}&stepLength=${stepLength}`);
+        mv2.send_REST(`traj/step/${steps}/?moveTime=${moveTime}&stepLength=${stepLength}`);
         return new Promise(resolve =>
             setTimeout(resolve, moveTime * steps));
     }
@@ -118,8 +117,8 @@ class Scratch3Mv2Blocks {
         let steps = parseInt(args.STEPS);
         steps = Math.min(Math.max(steps, 1), 20);
         const stepLength = -25;
-        console.log(`traj/step/${steps}/?moveTime=${moveTime};stepLength=${stepLength}`);
-        mv2.send_REST(`traj/step/${steps}/?moveTime=${moveTime};stepLength=${stepLength}`);
+        console.log(`traj/step/${steps}/?moveTime=${moveTime}&stepLength=${stepLength}`);
+        mv2.send_REST(`traj/step/${steps}/?moveTime=${moveTime}&stepLength=${stepLength}`);
         return new Promise(resolve =>
             setTimeout(resolve, moveTime * steps));
     }
@@ -133,8 +132,8 @@ class Scratch3Mv2Blocks {
         steps = Math.min(Math.max(steps, 1), 20);
         let turn = parseInt(args.TURN);
         turn = Math.min(Math.max(turn, -100), 100);
-        console.log(`traj/step/${steps}/?stepLength=${stepLength};moveTime=${moveTime};turn=${turn}`);
-        mv2.send_REST(`traj/step/${steps}/?stepLength=${stepLength};moveTime=${moveTime};turn=${turn}`);
+        console.log(`traj/step/${steps}/?stepLength=${stepLength}&moveTime=${moveTime}&turn=${turn}`);
+        mv2.send_REST(`traj/step/${steps}/?stepLength=${stepLength}&moveTime=${moveTime}&turn=${turn}`);
         return new Promise(resolve =>
             setTimeout(resolve, moveTime * steps));
     }
@@ -145,41 +144,38 @@ class Scratch3Mv2Blocks {
         steps = Math.min(Math.max(steps, 1), 20);
         let turn = 50;
         const side = args.SIDE;
-        if (side === 'right'){
+        if (side === 1){
             turn *= -1;
         }
-        console.log(`traj/step/${steps}/?moveTime=${moveTime};turn=${turn}`);
-        mv2.send_REST(`traj/step/${steps}/?moveTime=${moveTime};turn=${turn}`);
+        console.log(`traj/step/${steps}/?moveTime=${moveTime}&turn=${turn}`);
+        mv2.send_REST(`traj/step/${steps}/?moveTime=${moveTime}&turn=${turn}`);
         return new Promise(resolve =>
             setTimeout(resolve, moveTime * steps));
     }
 
     wiggle (args, util) {
-        console.log(`traj/wiggle`);
-        mv2.send_REST(`traj/wiggle`);
+        const moveTime = 5000;
+        console.log(`traj/wiggle/1/?moveTime=${moveTime}`);
+        mv2.send_REST(`traj/wiggle/1/?moveTime=${moveTime}`);
         return new Promise(resolve =>
-            setTimeout(resolve));
+            setTimeout(resolve, moveTime));
     }
 
     circle (args, util) {
         let moveTime = parseFloat(args.MOVETIME) * 1000;
         moveTime = Math.min(Math.max(moveTime, 1), 10000);
         let side = args.SIDE;
-        console.log(`traj/circle/?moveTime=${moveTime};side=${side}`);
-        mv2.send_REST(`traj/circle/?moveTime=${moveTime};side=${side}`);
+        console.log(`traj/circle/?moveTime=${moveTime}&side=${side}`);
+        mv2.send_REST(`traj/circle/?moveTime=${moveTime}&side=${side}`);
         return new Promise(resolve =>
             setTimeout(resolve, moveTime));
     }
 
     kick (args, util) {
-        const moveTime = 1500;
+        const moveTime = 3000;
         const side = args.SIDE;
-
-        /* let turn = parseInt(args.TURN);      // proposed optional parameter
-        turn = Math.min(Math.max(turn, -100), 100); */
-
-        console.log(`traj/kick/?moveTime=${moveTime};side=${side}`);
-        mv2.send_REST(`traj/kick/?moveTime${moveTime};side=${side}`);
+        console.log(`traj/kick/1/?moveTime=${moveTime}&side=${side}`);
+        mv2.send_REST(`traj/kick/1/?moveTime${moveTime}&side=${side}`);
         return new Promise(resolve =>
             setTimeout(resolve, moveTime));
     }
@@ -188,8 +184,8 @@ class Scratch3Mv2Blocks {
         let moveTime = parseFloat(args.MOVETIME) * 1000;
         moveTime = Math.min(Math.max(moveTime, 1), 10000);
         const side = args.SIDE;
-        console.log(`traj/lean/1/?moveTime=${moveTime};side=${side}`);
-        mv2.send_REST(`traj/lean/1/?moveTime=${moveTime};side=${side}`);
+        console.log(`traj/lean/1/?moveTime=${moveTime}&side=${side}`);
+        mv2.send_REST(`traj/lean/1/?moveTime=${moveTime}&side=${side}`);
         return new Promise(resolve =>
             setTimeout(resolve, moveTime));
     }
@@ -199,8 +195,8 @@ class Scratch3Mv2Blocks {
         let steps = parseInt(args.STEPS);
         steps = Math.min(Math.max(steps, 1), 20);
         const side = args.SIDE;
-        console.log(`traj/sidestep/${steps}/?side=  ${side};moveTime=${moveTime}`);
-        mv2.send_REST(`traj/sidestep/${steps}/?side=${side};moveTime=${moveTime}`);
+        console.log(`traj/sidestep/${steps}/?side= ${side}&moveTime=${moveTime}`);
+        mv2.send_REST(`traj/sidestep/${steps}/?side=${side}&moveTime=${moveTime}`);
         return new Promise(resolve =>
             setTimeout(resolve, moveTime*steps));
     }
@@ -210,19 +206,17 @@ class Scratch3Mv2Blocks {
         console.log(`traj/${eyeCommand}`);
         mv2.send_REST(`traj/${eyeCommand}`);
         return new Promise(resolve =>
-            setTimeout(resolve));
+            setTimeout(resolve, 2000));
     }
 
     moveLeg (args, util) {
-        console.log('Move legs!');
-        /* const moveTime = 1000;
+        const moveTime = 1000;
         const side = args.SIDE;
         const direction = args.DIRECTION;
-        console.log(`traj/joint/1/?jointID=${side};angle=${direction};moveTime=${moveTime}`);
-        mv2.send_REST(`traj/joint/1/?jointID=${side};angle=${direction};moveTime=${moveTime}`);
+        console.log(`traj/joint/1/?jointID=${side}&angle=${direction}&moveTime=${moveTime}`);
+        mv2.send_REST(`traj/joint/1/?jointID=${side}&angle=${direction}&moveTime=${moveTime}`);
         return new Promise(resolve =>
-            setTimeout(resolve, moveTime));*/
-        return;
+            setTimeout(resolve, moveTime));
     }
 
     liftFoot (args, util) {
@@ -230,7 +224,7 @@ class Scratch3Mv2Blocks {
         console.log(`traj/liftFoot/1/?side=${side}`);
         mv2.send_REST(`traj/liftFoot/1/?side=${side}`);
         return new Promise(resolve =>
-            setTimeout(resolve));
+            setTimeout(resolve, 1000));
     }
 
     lowerFoot (args, util) {
@@ -238,22 +232,18 @@ class Scratch3Mv2Blocks {
         console.log(`traj/lowerFoot/1/?side=${side}`);
         mv2.send_REST(`traj/lowerFoot/1/?side=${side}`);
         return new Promise(resolve =>
-            setTimeout(resolve));
+            setTimeout(resolve, 1000));
     }
 
     moveJoint (args, util) {
-        console.log('Move joints!');
-        // eslint-disable-next-line no-warning-comments
-        /* let moveTime = parseFloat(args.MOVETIME) * 1000;
+        let moveTime = parseFloat(args.MOVETIME) * 1000;
         moveTime = Math.min(Math.max(moveTime, 1), 10000);
-        const jointID = args.JOINTID;
+        const jointID = args.SERVOCHOICE;
         const angle = args.ANGLE;
-        // TODO: set sensible limits
-        console.log(`traj/joint/1/?jointID=${jointID};angle=${angle};moveTime=${moveTime}`);
-        mv2.send_REST(`traj/joint/1/?jointID=${jointID};angle=${angle};moveTime=${moveTime}`);
+        console.log(`traj/joint/1/?jointID=${jointID}&angle=${angle}&moveTime=${moveTime}`);
+        mv2.send_REST(`traj/joint/1/?jointID=${jointID}&angle=${angle}&moveTime=${moveTime}`);
         return new Promise(resolve =>
-            setTimeout(resolve, moveTime));*/
-        return;
+            setTimeout(resolve, moveTime));
     }
 
     wave (args, util) {
@@ -261,15 +251,15 @@ class Scratch3Mv2Blocks {
         console.log(`traj/wave/1/?side=${side}`);
         mv2.send_REST(`traj/wave/1/?side=${side}`);
         return new Promise(resolve =>
-            setTimeout(resolve));
+            setTimeout(resolve, 2500));
     }
 
-    waggleEyes (args, util) {
+    /* waggleEyes (args, util) {
         console.log(`traj/waggleEyes`);
         mv2.send_REST(`traj/waggleEyes`);
         return new Promise(resolve =>
             setTimeout(resolve));
-    }
+    } */
 
     dance (args, util) {
         console.log('Let\'s dance!');
@@ -279,12 +269,16 @@ class Scratch3Mv2Blocks {
 
     position (args, util) {
         console.log("Report a servo's position!");
-        return;
+        const servoChoice = parseInt(args.SERVOCHOICE);
+        const servoObj = JSON.parse(mv2.servos);
+        return servoObj.smartServos[servoChoice].pos;
     }
 
     current (args, util) {
         console.log("Report a servo's current!");
-        return;
+        const servoChoice = parseInt(args.SERVOCHOICE);
+        const servoObj = JSON.parse(mv2.servos);
+        return servoObj.smartServos[servoChoice].current;
     }
 
     accelerometer (args, util) {
@@ -294,12 +288,14 @@ class Scratch3Mv2Blocks {
 
     proximity (args, util) {
         console.log('Report proximity!');
+        // TODO: Do we have a proximity sensor yet?
         return;
     }
 
     batteryLevel (args, util) {
         console.log('Report the battery percentage!');
-        return;
+        const batteryObj = JSON.parse(mv2.power);
+        return batteryObj.powerStatus.battRemainCapacityPercent;
     }
 
     // SOUND
@@ -452,7 +448,6 @@ class Scratch3Mv2Blocks {
     }*/
 
     demo_sensor (args, util) {
-        console.log('hi');
         return mv2.demo_sensor;
     }
 
