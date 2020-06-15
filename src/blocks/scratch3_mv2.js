@@ -156,7 +156,7 @@ class Scratch3Mv2Blocks {
     wiggle (args, util) {
         const moveTime = 5000;
         console.log(`traj/wiggle/1/?moveTime=${moveTime}`);
-        mv2.send_REST(`traj/wiggle/1/?moveTime=${moveTime}`);
+        mv2.send_REST(`traj/1/wiggle/?moveTime=${moveTime}`);
         return new Promise(resolve =>
             setTimeout(resolve, moveTime));
     }
@@ -165,8 +165,8 @@ class Scratch3Mv2Blocks {
         let moveTime = parseFloat(args.MOVETIME) * 1000;
         moveTime = Math.min(Math.max(moveTime, 1), 10000);
         let side = args.SIDE;
-        console.log(`traj/circle/?moveTime=${moveTime}&side=${side}`);
-        mv2.send_REST(`traj/circle/?moveTime=${moveTime}&side=${side}`);
+        console.log(`traj/circle/1/?moveTime=${moveTime}&side=${side}`);
+        mv2.send_REST(`traj/1/circle/?moveTime=${moveTime}&side=${side}`);
         return new Promise(resolve =>
             setTimeout(resolve, moveTime));
     }
@@ -175,7 +175,7 @@ class Scratch3Mv2Blocks {
         const moveTime = 3000;
         const side = args.SIDE;
         console.log(`traj/kick/1/?moveTime=${moveTime}&side=${side}`);
-        mv2.send_REST(`traj/kick/1/?moveTime${moveTime}&side=${side}`);
+        mv2.send_REST(`traj/1/kick/?moveTime${moveTime}&side=${side}`);
         return new Promise(resolve =>
             setTimeout(resolve, moveTime));
     }
@@ -185,7 +185,7 @@ class Scratch3Mv2Blocks {
         moveTime = Math.min(Math.max(moveTime, 1), 10000);
         const side = args.SIDE;
         console.log(`traj/lean/1/?moveTime=${moveTime}&side=${side}`);
-        mv2.send_REST(`traj/lean/1/?moveTime=${moveTime}&side=${side}`);
+        mv2.send_REST(`traj/1/lean/?moveTime=${moveTime}&side=${side}`);
         return new Promise(resolve =>
             setTimeout(resolve, moveTime));
     }
@@ -268,13 +268,18 @@ class Scratch3Mv2Blocks {
     // SENSORS
 
     position (args, util) {
+        mv2.send_REST(null);
         console.log("Report a servo's position!");
-        const servoChoice = parseInt(args.SERVOCHOICE);
+        let servoChoice = parseInt(args.SERVOCHOICE);
+        if (servoChoice < 0 || servoChoice > 8) {
+            servoChoice = 0;
+        }
         const servoObj = JSON.parse(mv2.servos);
         return servoObj.smartServos[servoChoice].pos;
     }
 
     current (args, util) {
+        mv2.send_REST(null);
         console.log("Report a servo's current!");
         const servoChoice = parseInt(args.SERVOCHOICE);
         const servoObj = JSON.parse(mv2.servos);
@@ -282,17 +287,24 @@ class Scratch3Mv2Blocks {
     }
 
     accelerometer (args, util) {
+        mv2.send_REST(null);
         console.log('Report accelerometer reading!');
-        return;
+        const accelObj = JSON.parse(mv2.accel);
+        const xAccel = accelObj.accel.x;
+        const yAccel = accelObj.accel.y;
+        const zAccel = accelObj.accel.z;
+        return [xAccel, yAccel, zAccel];
     }
 
     proximity (args, util) {
+        mv2.send_REST(null);
         console.log('Report proximity!');
         // TODO: Do we have a proximity sensor yet?
         return;
     }
 
     batteryLevel (args, util) {
+        mv2.send_REST(null);
         console.log('Report the battery percentage!');
         const batteryObj = JSON.parse(mv2.power);
         return batteryObj.powerStatus.battRemainCapacityPercent;
