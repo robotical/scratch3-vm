@@ -948,7 +948,7 @@ class Scratch3MartyBlocks {
         this._peripheral.marty.kick(SIDE, 0, 2000);
         if (this._blockingMode)
             return new Promise((resolve) =>
-                setTimeout(resolve, 2000));
+                setTimeout(resolve,2000));
     }
 
     m_turn (args) {
