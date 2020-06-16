@@ -95,9 +95,10 @@ class Scratch3Mv2Blocks {
     // MOTION
 
     getReady (args, util) {
+        let moveTime = 3000;
         console.log('Ready, set, go!');
-        mv2.send_REST(`traj/getReady/`);
-        return new Promise(resolve => setTimeout(resolve));
+        mv2.send_REST(`traj/getReady/?moveTime=${moveTime}`);
+        return new Promise(resolve => setTimeout(resolve, moveTime));
     }
 
     walk_fw (args, util) {
@@ -123,14 +124,14 @@ class Scratch3Mv2Blocks {
     }
 
     walk (args, util) {
-        let moveTime = parseInt(args.MOVETIME) * 1000;
+        let moveTime = parseFloat(args.MOVETIME) * 1000;
         moveTime = Math.min(Math.max(moveTime, 1), 10000);
         let stepLength = parseInt(args.STEPLEN);
-        stepLength = Math.min(Math.max(stepLength, -100), 20);
+        stepLength = Math.min(Math.max(stepLength, -50), 50);
         let steps = parseInt(args.STEPS);
         steps = Math.min(Math.max(steps, 1), 20);
         let turn = parseInt(args.TURN);
-        turn = Math.min(Math.max(turn, -100), 100);
+        turn = Math.min(Math.max(turn, -25), 25);
         console.log(`traj/step/${steps}/?stepLength=${stepLength}&moveTime=${moveTime}&turn=${turn}`);
         mv2.send_REST(`traj/step/${steps}/?stepLength=${stepLength}&moveTime=${moveTime}&turn=${turn}`);
         return new Promise(resolve =>
@@ -141,7 +142,7 @@ class Scratch3Mv2Blocks {
         const moveTime = 1500;
         let steps = parseInt(args.STEPS);
         steps = Math.min(Math.max(steps, 1), 20);
-        let turn = 50;
+        let turn = 20;
         const side = args.SIDE;
         if (side === 1){
             turn *= -1;
@@ -204,8 +205,10 @@ class Scratch3Mv2Blocks {
         const eyeCommand = args.COMMAND;
         console.log(`traj/${eyeCommand}`);
         mv2.send_REST(`traj/${eyeCommand}`);
+        let moveTime = 1000;
+        if (eyeCommand === 'wiggleEyes'){moveTime = 2000;}
         return new Promise(resolve =>
-            setTimeout(resolve, 2000));
+            setTimeout(resolve, moveTime));
     }
 
     moveLeg (args, util) {

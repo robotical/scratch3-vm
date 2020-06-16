@@ -5,8 +5,8 @@
 
 class Marty2 {
     constructor () {
-        this.ip = '192.168.1.171';
-        // this.ip = null;
+        //this.ip = '192.168.1.171';
+        this.ip = null;
         this.demo_sensor = 0;
         this.power = 0;
         this.servos = 0;
