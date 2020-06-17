@@ -56,6 +56,8 @@ class Scratch3Mv2Blocks {
             mv2_moveJoint: this.moveJoint,
             mv2_wave: this.wave,
             mv2_dance: this.dance,
+            mv2_standStraight: this.standStraight,
+            mv2_hold: this.hold,
 
             // sensors
 
@@ -76,7 +78,7 @@ class Scratch3Mv2Blocks {
             mv2_set_ip: this.set_ip
 
             /* mv2_kickLeft: this.kickLeft,
-            mv2_standStraight: this.standStraight,
+
             mv2_sidefall: this.sidefall,
             mv2_stepLeft: this.stepLeft,
             mv2_stepRight: this.stepRight,
@@ -267,6 +269,23 @@ class Scratch3Mv2Blocks {
         console.log('Let\'s dance!');
     }
 
+    standStraight (args, util) {
+        const moveTime = parseFloat(args.MOVETIME) * 1000;
+        // minimum?
+        console.log(`traj/standStraight/?moveTime=${moveTime}`);
+        mv2.send_REST(`traj/standStraight/?moveTime=${moveTime}`);
+        return new Promise(resolve =>
+            setTimeout(resolve, moveTime));
+    }
+
+    hold (args, util) {
+        const moveTime = parseFloat(args.MOVETIME) * 1000;
+        console.log(`traj/hold/?moveTime=${moveTime}`);
+        mv2.send_REST(`traj/hold/?moveTime=${moveTime}`);
+        return new Promise(resolve =>
+            setTimeout(resolve, moveTime));
+    }
+
     // SENSORS
 
     position (args, util) {
@@ -323,15 +342,6 @@ class Scratch3Mv2Blocks {
     }
 
     // MISC/PROPOSED/DEPRECATED
-
-    /* standStraight (args, util) {
-        const moveTime = parseFloat(args.MOVETIME) * 1000;
-        // minimum?
-        console.log(`traj/standStraight/?moveTime=${moveTime}`);
-        mv2.send_REST(`traj/standStraight/?moveTime=${moveTime}`);
-        return new Promise(resolve =>
-            setTimeout(resolve, moveTime));
-    }*/
 
     /* stepLeft (args, util) {
         const moveTime = parseFloat(args.MOVETIME) * 1000;
