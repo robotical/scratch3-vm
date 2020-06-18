@@ -149,8 +149,8 @@ class Scratch3Mv2Blocks {
         if (side === 1){
             turn *= -1;
         }
-        console.log(`traj/step/${steps}/?moveTime=${moveTime}&turn=${turn}`);
-        mv2.send_REST(`traj/step/${steps}/?moveTime=${moveTime}&turn=${turn}`);
+        console.log(`traj/step/${steps}/?moveTime=${moveTime}&turn=${turn}&stepLength=1`);
+        mv2.send_REST(`traj/step/${steps}/?moveTime=${moveTime}&turn=${turn}&stepLength=1`);
         return new Promise(resolve =>
             setTimeout(resolve, moveTime * steps));
     }
