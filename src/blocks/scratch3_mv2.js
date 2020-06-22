@@ -146,7 +146,7 @@ class Scratch3Mv2Blocks {
         steps = Math.min(Math.max(steps, 1), 20);
         let turn = 20;
         const side = args.SIDE;
-        if (side === 1){
+        if (side === '1'){
             turn *= -1;
         }
         console.log(`traj/step/${steps}/?moveTime=${moveTime}&turn=${turn}&stepLength=1`);
@@ -335,8 +335,8 @@ class Scratch3Mv2Blocks {
 
     playSound(args, util) {
         const filename = args.FILENAME;
-        console.log(`api/filerun/${filename}`);
-        mv2.send_REST(`api/filerun/${filename}`);
+        console.log(`api/filerun/spiffs/${filename}`);
+        mv2.send_REST(`api/filerun/spiffs/${filename}`);
         return new Promise(resolve =>
             setTimeout(resolve));
     }
