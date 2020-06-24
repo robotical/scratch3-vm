@@ -350,7 +350,7 @@ class Scratch3Mv2Blocks {
     // SOUND
 
     playSound(args, util) {
-        const filename = args.FILENAME;
+        const filename = args.SOUND;
         console.log(`api/filerun/spiffs/${filename}`);
         mv2.send_REST(`api/filerun/spiffs/${filename}`);
         return new Promise(resolve =>
