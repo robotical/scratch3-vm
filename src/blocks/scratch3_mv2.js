@@ -63,7 +63,9 @@ class Scratch3Mv2Blocks {
 
             mv2_position: this.position,
             mv2_current: this.current,
-            mv2_accelerometer: this.accelerometer,
+            mv2_accelerometerX: this.accelerometerX,
+            mv2_accelerometerY: this.accelerometerY,
+            mv2_accelerometerZ: this.accelerometerZ,
             mv2_proximity: this.proximity,
             mv2_batteryLevel: this.batteryLevel,
 
@@ -307,14 +309,28 @@ class Scratch3Mv2Blocks {
         return servoObj.smartServos[servoChoice].current;
     }
 
-    accelerometer (args, util) {
+    accelerometerX (args, util) {
         mv2.send_REST(null);
         console.log('Report accelerometer reading!');
         const accelObj = JSON.parse(mv2.accel);
         const xAccel = accelObj.accel.x;
+        return xAccel;
+    }
+
+    accelerometerY (args, util) {
+        mv2.send_REST(null);
+        console.log('Report accelerometer reading!');
+        const accelObj = JSON.parse(mv2.accel);
         const yAccel = accelObj.accel.y;
+        return yAccel;
+    }
+
+    accelerometerZ (args, util) {
+        mv2.send_REST(null);
+        console.log('Report accelerometer reading!');
+        const accelObj = JSON.parse(mv2.accel);
         const zAccel = accelObj.accel.z;
-        return [xAccel, yAccel, zAccel];
+        return zAccel;
     }
 
     proximity (args, util) {
