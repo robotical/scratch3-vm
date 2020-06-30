@@ -351,8 +351,8 @@ class Scratch3Mv2Blocks {
 
     playSound(args, util) {
         const filename = args.SOUND;
-        console.log(`api/filerun/spiffs/${filename}`);
-        mv2.send_REST(`api/filerun/spiffs/${filename}`);
+        console.log(`filerun/spiffs/${filename}`);
+        mv2.send_REST(`filerun/spiffs/${filename}`);
         return new Promise(resolve =>
             setTimeout(resolve));
     }
