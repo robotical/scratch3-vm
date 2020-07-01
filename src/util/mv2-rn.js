@@ -13,6 +13,10 @@ class Marty2 {
         this.accel = 0;
     }
 
+    // refactor send_REST to handle a generic payload for RN to deal with (REST API requests, save/load, whatever)
+    // trigger from the download call somewhere in scratch-vm
+    // loading may have to be handled from injectedJavaScript
+
     // eslint-disable-next-line camelcase
     send_REST (cmd) {
         // eslint-disable-next-line no-console,no-alert
