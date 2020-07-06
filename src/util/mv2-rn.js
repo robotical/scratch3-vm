@@ -5,12 +5,11 @@
 
 class Marty2 {
     constructor () {
-        //this.ip = '192.168.1.171';
         this.ip = null;
-        this.demo_sensor = 0;
         this.power = 0;
         this.servos = 0;
         this.accel = 0;
+        this.savedProjectStates = null;
     }
 
     // refactor send_REST to handle a generic payload for RN to deal with (REST API requests, save/load, whatever)
@@ -19,22 +18,28 @@ class Marty2 {
 
     // eslint-disable-next-line camelcase
     send_REST (cmd) {
-        // eslint-disable-next-line no-console,no-alert
+
+        // eslint-disable-next-line no-console
         console.log(`Marty REST command: ${cmd}`);
+
+        // to send commands over wifi
+
         // eslint-disable-next-line no-alert
-        //        if (this.ip !== null){
-        //            fetch(`http://${this.ip}/api/${cmd}`)
-        //                 .then(response => {
-        //                     if (response.ok)
-        //                         return response.json();
-        //                     }
-        //                     const resp = response;
-        //                     console.warn('Response not ok', resp.ok);
-        //                 })
-        //                 .catch(err => {
-        //                     console.warn('er #2', err);
-        //                 });
-        //        } else {
+        /* if (this.ip !== null){
+            fetch(`http://${this.ip}/api/${cmd}`)
+                 .then(response => {
+                     if (response.ok)
+                         return response.json();
+                     }
+                     const resp = response;
+                     console.warn('Response not ok', resp.ok);
+                 })
+                 .catch(err => {
+                     console.warn('er #2', err);
+                 });
+        } else { */
+
+
         try {
             window.ReactNativeWebView.postMessage(cmd); // this call triggers onMessage in the app
         } catch (err) {
@@ -43,11 +48,7 @@ class Marty2 {
         }
     }
 
-    set_demo_sensor (sensorval) {
-        sensorval = parseFloat(sensorval);
-        this.demo_sensor = sensorval;
-    }
-
+    // eslint-disable-next-line camelcase
     set_ip (ip) {
         this.ip = ip;
     }
