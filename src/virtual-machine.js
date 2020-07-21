@@ -303,7 +303,8 @@ class VirtualMachine extends EventEmitter {
      * @return {!Promise} Promise that resolves after targets are installed.
      */
     loadProject (input) {
-        alert('this the right function');
+        //console.log(input);
+        //alert('this the right function');
         if (typeof input === 'object' && !(input instanceof ArrayBuffer) &&
           !ArrayBuffer.isView(input)) {
             // If the input is an object and not any ArrayBuffer
@@ -312,13 +313,13 @@ class VirtualMachine extends EventEmitter {
             // this is a project.json as an object
             // validate expects a string or buffer as input
             // TODO not sure if we need to check that it also isn't a data view
-            alert('it gonna stringify');
+            //alert('it gonna stringify');
             input = JSON.stringify(input);
-            alert('it stringified');
+            //alert('it stringified');
         }
 
         const validationPromise = new Promise((resolve, reject) => {
-            alert('started validating...');
+            //alert('started validating...');
             const validate = require('scratch-parser');
             // The second argument of false below indicates to the validator that the
             // input should be parsed/validated as an entire project (and not a single sprite)
@@ -329,7 +330,7 @@ class VirtualMachine extends EventEmitter {
                 }
 
                 resolve(res);
-                alert('validated?');
+                //alert('validated?');
             });
         })
             .catch(error => {
