@@ -269,6 +269,9 @@ class Scratch3Mv2Blocks {
 
     dance (args, util) {
         console.log('Let\'s dance!');
+        mv2.send_REST(`traj/dance/`);
+        return new Promise(resolve =>
+            setTimeout(resolve, 4500));
     }
 
     standStraight (args, util) {
