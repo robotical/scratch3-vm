@@ -61,13 +61,13 @@ class Scratch3Mv2Blocks {
 
             // sensors
 
-            mv2_position: this.position,
-            mv2_current: this.current,
-            mv2_accelerometerX: this.accelerometerX,
-            mv2_accelerometerY: this.accelerometerY,
-            mv2_accelerometerZ: this.accelerometerZ,
-            mv2_proximity: this.proximity,
-            mv2_batteryLevel: this.batteryLevel,
+            ServoPosition: this.position,
+            ServoCurrent: this.current,
+            XAxisMovement: this.accelerometerX,
+            YAxisMovement: this.accelerometerY,
+            ZAxisMovement: this.accelerometerZ,
+            ObstacleProximity: this.proximity,
+            BatteryPercentage: this.batteryLevel,
 
             // sound commands
 
@@ -99,14 +99,14 @@ class Scratch3Mv2Blocks {
     // MOTION
 
     getReady (args, util) {
-        let moveTime = 3000;
+        const moveTime = 3000;
         console.log('Ready, set, go!');
         mv2.send_REST(`traj/getReady/?moveTime=${moveTime}`);
         return new Promise(resolve => setTimeout(resolve, moveTime));
     }
 
     walk_fw (args, util) {
-        let moveTime = 1500;
+        const moveTime = 1500;
         let steps = parseInt(args.STEPS);
         steps = Math.min(Math.max(steps, 1), 20);
         const stepLength = 25;
@@ -117,7 +117,7 @@ class Scratch3Mv2Blocks {
     }
 
     walk_bw (args, util) {
-        let moveTime = 1500;
+        const moveTime = 1500;
         let steps = parseInt(args.STEPS);
         steps = Math.min(Math.max(steps, 1), 20);
         const stepLength = -25;
@@ -168,7 +168,7 @@ class Scratch3Mv2Blocks {
     circle (args, util) {
         let moveTime = parseFloat(args.MOVETIME) * 1000;
         moveTime = Math.min(Math.max(moveTime, 1), 10000);
-        let side = args.SIDE;
+        const side = args.SIDE;
         console.log(`traj/circle/1/?moveTime=${moveTime}&side=${side}`);
         mv2.send_REST(`traj/circle/1/?moveTime=${moveTime}&side=${side}`);
         return new Promise(resolve =>
@@ -210,7 +210,9 @@ class Scratch3Mv2Blocks {
         console.log(`traj/${eyeCommand}`);
         mv2.send_REST(`traj/${eyeCommand}`);
         let moveTime = 1000;
-        if (eyeCommand === 'wiggleEyes'){moveTime = 2000;}
+        if (eyeCommand === 'wiggleEyes'){
+            moveTime = 2000;
+        }
         return new Promise(resolve =>
             setTimeout(resolve, moveTime));
     }
@@ -301,15 +303,82 @@ class Scratch3Mv2Blocks {
             servoChoice = 0;
         }
         const servoObj = JSON.parse(mv2.servos);
-        return servoObj.smartServos[servoChoice].pos;
+        let servo;
+        switch (servoChoice) {
+        case 0:
+            servo = 'Left Hip: ';
+            break;
+        case 1:
+            servo = 'Left Twist: ';
+            break;
+        case 2:
+            servo = 'Left Knee: ';
+            break;
+        case 3:
+            servo = 'Right Hip: ';
+            break;
+        case 4:
+            servo = 'Right Twist';
+            break;
+        case 5:
+            servo = 'Right Knee: ';
+            break;
+        case 6:
+            servo = 'Left Arm: ';
+            break;
+        case 7:
+            servo = 'Right Arm: ';
+            break;
+        case 8:
+            servo = 'Eyes: ';
+            break;
+        default:
+            break;
+        }
+        return servo + servoObj.smartServos[servoChoice].pos;
     }
 
     current (args, util) {
         mv2.send_REST(null);
         console.log("Report a servo's current!");
-        const servoChoice = parseInt(args.SERVOCHOICE);
+        let servoChoice = parseInt(args.SERVOCHOICE);
+        if (servoChoice < 0 || servoChoice > 8) {
+            servoChoice = 0;
+        }
         const servoObj = JSON.parse(mv2.servos);
-        return servoObj.smartServos[servoChoice].current;
+        let servo;
+        switch (servoChoice) {
+        case 0:
+            servo = 'Left Hip: ';
+            break;
+        case 1:
+            servo = 'Left Twist: ';
+            break;
+        case 2:
+            servo = 'Left Knee: ';
+            break;
+        case 3:
+            servo = 'Right Hip: ';
+            break;
+        case 4:
+            servo = 'Right Twist';
+            break;
+        case 5:
+            servo = 'Right Knee: ';
+            break;
+        case 6:
+            servo = 'Left Arm: ';
+            break;
+        case 7:
+            servo = 'Right Arm: ';
+            break;
+        case 8:
+            servo = 'Eyes: ';
+            break;
+        default:
+            break;
+        }
+        return servo + servoObj.smartServos[servoChoice].current;
     }
 
     accelerometerX (args, util) {
@@ -352,7 +421,7 @@ class Scratch3Mv2Blocks {
 
     // SOUND
 
-    playSound(args, util) {
+    playSound (args, util) {
         const filename = args.SOUND;
         console.log(`filerun/spiffs/${filename}`);
         mv2.send_REST(`filerun/spiffs/${filename}`);
