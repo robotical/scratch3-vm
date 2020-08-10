@@ -11,6 +11,7 @@ class Marty2 {
         this.power = 0;
         this.servos = 0;
         this.accel = 0;
+        this.savedProjectStates = null;
     }
 
     // eslint-disable-next-line camelcase
