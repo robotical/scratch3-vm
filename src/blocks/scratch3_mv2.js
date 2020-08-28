@@ -296,8 +296,7 @@ class Scratch3Mv2Blocks {
     // SENSORS
 
     position (args, util) {
-        mv2.send_REST(null);
-        console.log("Report a servo's position!");
+        //console.log("Report a servo's position!");
         let servoChoice = parseInt(args.SERVOCHOICE);
         if (servoChoice < 0 || servoChoice > 8) {
             servoChoice = 0;
@@ -339,8 +338,7 @@ class Scratch3Mv2Blocks {
     }
 
     current (args, util) {
-        mv2.send_REST(null);
-        console.log("Report a servo's current!");
+        //console.log("Report a servo's current!");
         let servoChoice = parseInt(args.SERVOCHOICE);
         if (servoChoice < 0 || servoChoice > 8) {
             servoChoice = 0;
@@ -382,39 +380,34 @@ class Scratch3Mv2Blocks {
     }
 
     accelerometerX (args, util) {
-        mv2.send_REST(null);
-        console.log('Report accelerometer reading!');
+        //console.log('Report accelerometer reading!');
         const accelObj = JSON.parse(mv2.accel);
         const xAccel = accelObj.accel.x;
         return xAccel;
     }
 
     accelerometerY (args, util) {
-        mv2.send_REST(null);
-        console.log('Report accelerometer reading!');
+        //console.log('Report accelerometer reading!');
         const accelObj = JSON.parse(mv2.accel);
         const yAccel = accelObj.accel.y;
         return yAccel;
     }
 
     accelerometerZ (args, util) {
-        mv2.send_REST(null);
-        console.log('Report accelerometer reading!');
+        //console.log('Report accelerometer reading!');
         const accelObj = JSON.parse(mv2.accel);
         const zAccel = accelObj.accel.z;
         return zAccel;
     }
 
     proximity (args, util) {
-        mv2.send_REST(null);
-        console.log('Report proximity!');
+        //console.log('Report proximity!');
         // TODO: Do we have a proximity sensor yet?
         return;
     }
 
     batteryLevel (args, util) {
-        mv2.send_REST(null);
-        console.log('Report the battery percentage!');
+        //console.log('Report the battery percentage!');
         const batteryObj = JSON.parse(mv2.power);
         return batteryObj.powerStatus.battRemainCapacityPercent;
     }
