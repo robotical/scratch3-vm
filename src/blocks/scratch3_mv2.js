@@ -68,6 +68,7 @@ class Scratch3Mv2Blocks {
             ZAxisMovement: this.accelerometerZ,
             ObstacleProximity: this.proximity,
             BatteryPercentage: this.batteryLevel,
+            mv2_obstaclesense: this.obstacleSense,
 
             // sound commands
 
@@ -410,6 +411,17 @@ class Scratch3Mv2Blocks {
         //console.log('Report the battery percentage!');
         const batteryObj = JSON.parse(mv2.power);
         return batteryObj.powerStatus.battRemainCapacityPercent;
+    }
+
+    obstacleSense (args, util) {
+        const addons = JSON.parse(mv2.addons).addons;
+        for (var i=0; i < addons.length; i++){
+            if (args.SENSORCHOICE in addons[i].vals){
+                //mv2.send_REST('return val: ' + addons[i].vals[args.SENSORCHOICE]);
+                return addons[i].vals[args.SENSORCHOICE];
+            }
+        }
+        return false;
     }
 
     // SOUND
