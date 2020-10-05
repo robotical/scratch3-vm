@@ -69,6 +69,9 @@ class Scratch3Mv2Blocks {
             ObstacleProximity: this.proximity,
             BatteryPercentage: this.batteryLevel,
             mv2_obstaclesense: this.obstacleSense,
+            mv2_groundsense: this.groundSense,
+            mv2_coloursense: this.colourSense,
+            mv2_distancesense: this.distanceSense,
 
             // sound commands
 
@@ -415,10 +418,101 @@ class Scratch3Mv2Blocks {
 
     obstacleSense (args, util) {
         const addons = JSON.parse(mv2.addons).addons;
+        // if ir sensor not found we will check for colour sensor
+        let colourSensorName = "LeftColourSensorTouch";
+        if (args.SENSORCHOICE.includes("Right")){ colourSensorName = "RightColourSensorTouch"; }
+
+        let colourSensorVal = null;
         for (var i=0; i < addons.length; i++){
             if (args.SENSORCHOICE in addons[i].vals){
                 //mv2.send_REST('return val: ' + addons[i].vals[args.SENSORCHOICE]);
                 return addons[i].vals[args.SENSORCHOICE];
+            }
+            if (colourSensorName in addons[i].vals){
+                colourSensorVal = addons[i].vals[colourSensorName];
+            }
+        }
+        if (colourSensorVal !== null) return colourSensorVal;
+        return false;
+    }
+
+    groundSense (args, util) {
+        const addons = JSON.parse(mv2.addons).addons;
+        // if ir sensor not found we will check for colour sensor
+        let colourSensorName = "LeftColourSensorAir";
+        if (args.SENSORCHOICE.includes("Right")){ colourSensorName = "RightColourSensorAir"; }
+
+        let colourSensorVal = null;
+        for (var i=0; i < addons.length; i++){
+            if (args.SENSORCHOICE in addons[i].vals){
+                //mv2.send_REST('return val: ' + addons[i].vals[args.SENSORCHOICE]);
+                // sensor tells you if if the foot is in the air
+                return !addons[i].vals[args.SENSORCHOICE];
+            }
+            if (colourSensorName in addons[i].vals){
+                colourSensorVal = !addons[i].vals[colourSensorName];
+            }
+        }
+        if (colourSensorVal !== null) return colourSensorVal;
+
+        return false;
+    }
+
+    colourSense (args, util) {
+        const addons = JSON.parse(mv2.addons).addons;
+        for (var i=0; i < addons.length; i++){
+            if ((args.SENSORCHOICE + "Red") in addons[i].vals){
+                if (addons[i].vals[args.SENSORCHOICE + "Air"]){
+                    return "air";
+                } else {
+                    //mv2.send_REST('return val: ' + addons[i].vals[args.SENSORCHOICE]);
+                    let red = addons[i].vals[args.SENSORCHOICE + "Red"];
+                    let green = addons[i].vals[args.SENSORCHOICE + "Green"];
+                    let blue = addons[i].vals[args.SENSORCHOICE + "Blue"];
+                    let maxVal = Math.max(red, green, blue);
+                    red /= maxVal;
+                    green /= maxVal;
+                    blue /= maxVal;
+                    const colours = [
+                        {red: [0.3, 0.75], green: [0.85, 1], blue: [0.8, 1.0], name: "green"},
+                        {red: [0.85, 1],  green: [0.3, 0.5], blue: [0.45, 0.65], name: "red"},
+                        {red: [0.35, 0.55], green: [0.42, 0.62], blue: [0.85, 1], name: "purple"},
+                        {red: [0.85, 1], green: [0.8, 1], blue: [0.55, 0.75], name: "yellow"},
+                        {red: [0, 0.4], green: [0.45, 0.75], blue: [0.85, 1], name: "blue"},
+                        {red: [0.75, 1], green: [0.6, 0.8], blue: [0.8, 1.0], name: "pink"} 
+                    ];
+                    //mv2.send_REST("red: " + red + " | green: " + green + " | blue: " + blue);
+                    for (i=0; i<colours.length; i++){
+                        if ((colours[i].red[0] <= red && red <= colours[i].red[1]) && 
+                          (colours[i].green[0] <= green && green <= colours[i].green[1]) &&
+                          (colours[i].blue[0] <= blue && blue <= colours[i].blue[1])){
+                              return colours[i].name;
+                          }
+                    }
+
+                    return "unclear";
+
+                }
+            }
+        }
+        return null;
+    }
+
+    distanceSense (args, util) {
+        const addons = JSON.parse(mv2.addons).addons;
+        for (var i=0; i < addons.length; i++){
+            if ("DistanceSensorReading" in addons[i].vals){
+                //mv2.send_REST('return val: ' + addons[i].vals[args.SENSORCHOICE]);
+                let reading = addons[i].vals["DistanceSensorReading"];
+                return reading;
+                if (reading > 1638){
+                    return Math.round(Math.pow((reading/676469),-0.7616));
+                } else if (reading > 327){
+                    return Math.round(Math.pow((reading/2200710),-0.63808));
+                } else {
+                    return Math.round(Math.pow((reading/2608791),-0.61874));
+                }
+
             }
         }
         return false;
