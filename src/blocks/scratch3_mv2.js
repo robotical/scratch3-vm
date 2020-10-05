@@ -338,7 +338,8 @@ class Scratch3Mv2Blocks {
         default:
             break;
         }
-        return servo + servoObj.smartServos[servoChoice].pos;
+        //return servo + servoObj.smartServos[servoChoice].pos;
+        return servoObj.smartServos[servoChoice].pos;
     }
 
     current (args, util) {
@@ -380,7 +381,8 @@ class Scratch3Mv2Blocks {
         default:
             break;
         }
-        return servo + servoObj.smartServos[servoChoice].current;
+        //return servo + servoObj.smartServos[servoChoice].current;
+        return servoObj.smartServos[servoChoice].current;
     }
 
     accelerometerX (args, util) {
@@ -505,14 +507,6 @@ class Scratch3Mv2Blocks {
                 //mv2.send_REST('return val: ' + addons[i].vals[args.SENSORCHOICE]);
                 let reading = addons[i].vals["DistanceSensorReading"];
                 return reading;
-                if (reading > 1638){
-                    return Math.round(Math.pow((reading/676469),-0.7616));
-                } else if (reading > 327){
-                    return Math.round(Math.pow((reading/2200710),-0.63808));
-                } else {
-                    return Math.round(Math.pow((reading/2608791),-0.61874));
-                }
-
             }
         }
         return false;
