@@ -3,6 +3,11 @@ const MathUtil = require('../util/math-util');
 const Timer = require('../util/timer');
 const Marty2 = require('../util/mv2-rn');
 
+// device type IDs for Robotical Standard Add-ons
+const MV2_DTID_DISTANCE = 83;
+const MV2_DTID_COLOUR = 85;
+const MV2_DTID_IRFOOT = 86;
+
 /**
  * Questions:
  * - what is the util parameter for? // irrelevant
@@ -71,6 +76,7 @@ class Scratch3Mv2Blocks {
             mv2_obstaclesense: this.obstacleSense,
             mv2_groundsense: this.groundSense,
             mv2_coloursense: this.colourSense,
+            mv2_coloursenseraw: this.colourSenseRaw,
             mv2_distancesense: this.distanceSense,
 
             // sound commands
@@ -462,53 +468,95 @@ class Scratch3Mv2Blocks {
 
     colourSense (args, util) {
         const addons = JSON.parse(mv2.addons).addons;
+        let csID = -1, selectedID = -1;
         for (var i=0; i < addons.length; i++){
             if ((args.SENSORCHOICE + "Red") in addons[i].vals){
-                if (addons[i].vals[args.SENSORCHOICE + "Air"]){
-                    return "air";
-                } else {
-                    //mv2.send_REST('return val: ' + addons[i].vals[args.SENSORCHOICE]);
-                    let red = addons[i].vals[args.SENSORCHOICE + "Red"];
-                    let green = addons[i].vals[args.SENSORCHOICE + "Green"];
-                    let blue = addons[i].vals[args.SENSORCHOICE + "Blue"];
-                    let maxVal = Math.max(red, green, blue);
-                    red /= maxVal;
-                    green /= maxVal;
-                    blue /= maxVal;
-                    const colours = [
-                        {red: [0.3, 0.75], green: [0.85, 1], blue: [0.8, 1.0], name: "green"},
-                        {red: [0.85, 1],  green: [0.3, 0.5], blue: [0.45, 0.65], name: "red"},
-                        {red: [0.35, 0.55], green: [0.42, 0.62], blue: [0.85, 1], name: "purple"},
-                        {red: [0.85, 1], green: [0.8, 1], blue: [0.55, 0.75], name: "yellow"},
-                        {red: [0, 0.4], green: [0.45, 0.75], blue: [0.85, 1], name: "blue"},
-                        {red: [0.75, 1], green: [0.6, 0.8], blue: [0.8, 1.0], name: "pink"} 
-                    ];
-                    //mv2.send_REST("red: " + red + " | green: " + green + " | blue: " + blue);
-                    for (i=0; i<colours.length; i++){
-                        if ((colours[i].red[0] <= red && red <= colours[i].red[1]) && 
-                          (colours[i].green[0] <= green && green <= colours[i].green[1]) &&
-                          (colours[i].blue[0] <= blue && blue <= colours[i].blue[1])){
-                              return colours[i].name;
-                          }
+                selectedID = i;
+            }
+            if (addons[i].deviceTypeID == MV2_DTID_COLOUR){
+                csID = i;
+            }
+        }
+
+        let sensorname = args.SENSORCHOICE;
+        // check if we found the specified sensor. If not, fall back to the last correctly typed sensor
+        if (selectedID < 0){
+            if (csID < 0) return null;
+            selectedID = csID;
+            sensorname = addons[selectedID].name;
+        }
+
+        if (addons[selectedID].vals[args.SENSORCHOICE + "Air"]){
+            return "air";
+        } else {
+            //mv2.send_REST('return val: ' + addons[i].vals[args.SENSORCHOICE]);
+            let red = addons[selectedID].vals[sensorname + "Red"];
+            let green = addons[selectedID].vals[sensorname + "Green"];
+            let blue = addons[selectedID].vals[sensorname + "Blue"];
+            let clear = addons[selectedID].vals[sensorname + "Clear"];
+            let maxVal = Math.max(red, green, blue);
+            red /= maxVal;
+            green /= maxVal;
+            blue /= maxVal;
+            const colours = [
+                {red: [0.3, 0.75], green: [0.85, 1], blue: [0.6, 1.0], clear: [40, 150], name: "green"},
+                {red: [0.8, 1],  green: [0.3, 0.5], blue: [0.4, 0.77], clear: [40, 150], name: "red"},
+                {red: [0.3, 0.55], green: [0.37, 0.62], blue: [0.8, 1], clear: [40, 150], name: "purple"},
+                {red: [0.85, 1], green: [0.8, 1], blue: [0.45, 0.93], clear: [150, 255],name: "yellow"},
+                {red: [0.1, 0.25], green: [0.4, 0.75], blue: [0.8, 1], clear: [100, 255], name: "blue"},
+                {red: [0.75, 1], green: [0.6, 0.85], blue: [0.8, 1.0], clear: [110, 210], name: "pink"} 
+            ];
+            //mv2.send_REST("red: " + red + " | green: " + green + " | blue: " + blue);
+            for (var i=0; i<colours.length; i++){
+                if ((colours[i].red[0] <= red && red <= colours[i].red[1]) && 
+                    (colours[i].green[0] <= green && green <= colours[i].green[1]) &&
+                    (colours[i].blue[0] <= blue && blue <= colours[i].blue[1]) &&
+                    (colours[i].clear[0] <= clear && clear <= colours[i].clear[1])){
+                        return colours[i].name;
                     }
+            }
 
-                    return "unclear";
+            return "unclear";
+        }
+    }
 
+    colourSenseRaw (args, util){
+        const addons = JSON.parse(mv2.addons).addons;
+        let csVal = null;
+        for (var i=0; i < addons.length; i++){
+            if ((args.SENSORCHOICE + args.SENSORCHANNEL) in addons[i].vals){
+                return addons[i].vals[args.SENSORCHOICE + args.SENSORCHANNEL];
+            }
+            // in case we don't find the specific sensor, we'll return the last correctly device typed value
+            if (addons[i].deviceTypeID == MV2_DTID_COLOUR){
+                // device is a colour sensor. iterate through channels to find correct one
+                for (const addon in addons[i].vals){
+                    if (addon.includes(args.SENSORCHANNEL))
+                        csVal = addons[i].vals[addon];
                 }
             }
         }
+        if (csVal !== null) return csVal;
         return null;
     }
 
     distanceSense (args, util) {
         const addons = JSON.parse(mv2.addons).addons;
+        let dsVal = null;
         for (var i=0; i < addons.length; i++){
             if ("DistanceSensorReading" in addons[i].vals){
                 //mv2.send_REST('return val: ' + addons[i].vals[args.SENSORCHOICE]);
                 let reading = addons[i].vals["DistanceSensorReading"];
                 return reading;
             }
+            if (addons[i].deviceTypeID == MV2_DTID_DISTANCE){
+                for (const val in addons[i].vals){
+                    if (val.includes("Reading"))
+                        dsVal = addons[i].vals[val];
+                }
+            }
         }
+        if (dsVal !== null) return dsVal;
         return false;
     }
 
