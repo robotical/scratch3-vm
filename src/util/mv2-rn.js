@@ -2,13 +2,54 @@
  * @fileoverview
  * Functions for interacting with Marty v2 via a REST interface
  */
+class EventDispatcher {
+    constructor() {
+        this._listeners = [];
+    }
 
-class Marty2 {
+    hasEventListener(type, listener) {
+        return this._listeners.some(item => item.type === type && item.listener === listener);
+    }
+
+    addEventListener(type, listener) {
+        if (!this.hasEventListener(type, listener)) {
+            this._listeners.push({type, listener, options: {once: false}});
+        }
+        return this
+    }
+
+    removeEventListener(type, listener) {
+        let index = this._listeners.findIndex(item => item.type === type && item.listener === listener);
+        if (index >= 0) this._listeners.splice(index, 1);
+        return this;
+    }
+
+    removeEventListeners() {
+        this._listeners = [];
+        return this;
+    }
+
+    dispatchEvent(evt) {
+        this._listeners
+            .filter(item => item.type === evt.type)
+            .forEach(item => {
+                const {type, listener, options: {once}} = item;
+                listener.call(this, evt);
+                if (once === true) this.removeEventListener(type, listener)
+            });
+        return this
+    }
+}
+
+
+class Marty2 extends EventDispatcher {
     constructor () {
+        super();
         //this.ip = '192.168.1.171';
         this.ip = null;
         this.demo_sensor = 0;
-        this.power = 0;
+        this.battRemainCapacityPercent = 0;
+        this.rssi = 0;
         this.servos = 0;
         this.accel = 0;
         this.commandPromise = null;
@@ -18,6 +59,22 @@ class Marty2 {
         this.loadScratchFile = this.loadScratchFile.bind(this);
         this.listSavedScratchFiles = this.listSavedScratchFiles.bind(this);
         this.deleteScratchFile = this.deleteScratchFile.bind(this);
+        this.setRSSI = this.setRSSI.bind(this);
+    }
+
+    setRSSI(rssi) {
+        console.log('setRSSI', rssi);
+        if (rssi !== this.rssi) {
+            this.rssi = rssi;
+            this.dispatchEvent({type: "onRSSIChange", rssi: this.rssi});
+        }
+    }
+
+    setBattRemainCapacityPercent(battRemainCapacityPercent) {
+        if (battRemainCapacityPercent !== this.battRemainCapacityPercent) {
+            this.battRemainCapacityPercent = battRemainCapacityPercent;
+            this.dispatchEvent({type: "onBattRemainCapacityPercentChange", battRemainCapacityPercent: this.battRemainCapacityPercent});
+        }
     }
 
     // eslint-disable-next-line camelcase
