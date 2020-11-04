@@ -420,8 +420,7 @@ class Scratch3Mv2Blocks {
 
     batteryLevel (args, util) {
         //console.log('Report the battery percentage!');
-        const batteryObj = JSON.parse(mv2.power);
-        return batteryObj.powerStatus.battRemainCapacityPercent;
+        return mv2.battRemainCapacityPercent;
     }
 
     obstacleSense (args, util) {
