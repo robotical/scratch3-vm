@@ -3,33 +3,33 @@
  * Functions for interacting with Marty v2 via a REST interface
  */
 class EventDispatcher {
-    constructor() {
+    constructor () {
         this._listeners = [];
     }
 
-    hasEventListener(type, listener) {
+    hasEventListener (type, listener) {
         return this._listeners.some(item => item.type === type && item.listener === listener);
     }
 
-    addEventListener(type, listener) {
+    addEventListener (type, listener) {
         if (!this.hasEventListener(type, listener)) {
             this._listeners.push({type, listener, options: {once: false}});
         }
-        return this
+        return this;
     }
 
-    removeEventListener(type, listener) {
-        let index = this._listeners.findIndex(item => item.type === type && item.listener === listener);
+    removeEventListener (type, listener) {
+        const index = this._listeners.findIndex(item => item.type === type && item.listener === listener);
         if (index >= 0) this._listeners.splice(index, 1);
         return this;
     }
 
-    removeEventListeners() {
+    removeEventListeners () {
         this._listeners = [];
         return this;
     }
 
-    dispatchEvent(evt) {
+    dispatchEvent (evt) {
         this._listeners
             .filter(item => item.type === evt.type)
             .forEach(item => {
@@ -37,7 +37,7 @@ class EventDispatcher {
                 listener.call(this, evt);
                 if (once === true) this.removeEventListener(type, listener)
             });
-        return this
+        return this;
     }
 }
 
@@ -45,7 +45,7 @@ class EventDispatcher {
 class Marty2 extends EventDispatcher {
     constructor () {
         super();
-        //this.ip = '192.168.1.171';
+        // this.ip = '192.168.1.171';
         this.ip = null;
         this.demo_sensor = 0;
         this.battRemainCapacityPercent = 0;
@@ -62,18 +62,17 @@ class Marty2 extends EventDispatcher {
         this.setRSSI = this.setRSSI.bind(this);
     }
 
-    setRSSI(rssi) {
-        console.log('setRSSI', rssi);
+    setRSSI (rssi) {
         if (rssi !== this.rssi) {
             this.rssi = rssi;
-            this.dispatchEvent({type: "onRSSIChange", rssi: this.rssi});
+            this.dispatchEvent({type: 'onRSSIChange', rssi: this.rssi});
         }
     }
 
-    setBattRemainCapacityPercent(battRemainCapacityPercent) {
+    setBattRemainCapacityPercent (battRemainCapacityPercent) {
         if (battRemainCapacityPercent !== this.battRemainCapacityPercent) {
             this.battRemainCapacityPercent = battRemainCapacityPercent;
-            this.dispatchEvent({type: "onBattRemainCapacityPercentChange", battRemainCapacityPercent: this.battRemainCapacityPercent});
+            this.dispatchEvent({type: 'onBattRemainCapacityPercentChange', battRemainCapacityPercent: this.battRemainCapacityPercent});
         }
     }
 
@@ -105,58 +104,86 @@ class Marty2 extends EventDispatcher {
 
     /**
      * Save a scratch file
-     * @param string fileName Filename
-     * @param string contents Base64 data URL
+     * @param {string} fileName Filename to save to
+     * @param {string} contents Base64 encoded project data
+     * @returns {Promise} Promise
      */
-    saveScratchFile(fileName, contents) {
-        return this.sendCommand({
-            command: 'saveFile',
-            fileName,
-            contents
-        });
+    saveScratchFile (fileName, contents) {
+        if (window.ReactNativeWebView) {
+            return this.sendCommand({
+                command: 'saveFile',
+                fileName,
+                contents
+            });
+        }
+        // not running in react native, fallback to web storage
+        window.localStorage.setItem(`scratch_${fileName}`, contents);
+        return Promise.resolve();
     }
 
     /**
      * Delete a saved scratch file
-     * @param string fileName File to delete
+     * @param {string} fileName File to delete
+     * @returns {Promise} Promise
      */
-    deleteScratchFile(fileName) {
-        return this.sendCommand({
-            command: 'deleteFile',
-            fileName,
-        });
+    deleteScratchFile (fileName) {
+        if (window.ReactNativeWebView) {
+            return this.sendCommand({
+                command: 'deleteFile',
+                fileName
+            });
+        }
+        // not running in react native, fallback to web storage
+        window.localStorage.removeItem(`scratch_${fileName}`);
+        return Promise.resolve();
     }
 
     /**
      * Load a scratch file
-     * @param string fileName File to load
+     * @param {string} fileName File to load
+     * @returns {Promise} Promise
      */
-    loadScratchFile(fileName) {
-        return this.sendCommand({
-            command: 'loadFile',
-            fileName,
-        });
+    loadScratchFile (fileName) {
+        if (window.ReactNativeWebView) {
+            return this.sendCommand({
+                command: 'loadFile',
+                fileName
+            });
+        }
+        // not running in react native, fallback to web storage
+        const contents = window.localStorage.getItem(`scratch_${fileName}`);
+        return Promise.resolve({contents});
     }
 
     /**
      * List the saved scratch files
+     * @returns {Promise} Promise
      */
-    listSavedScratchFiles() {
-        return this.sendCommand({
-            command: 'listFiles'
-        });
+    listSavedScratchFiles () {
+        if (window.ReactNativeWebView) {
+            return this.sendCommand({
+                command: 'listFiles'
+            });
+        }
+        // not running in react native, fallback to web storage
+        const fileNames = Object.keys(window.localStorage)
+            .filter(key => key.startsWith('scratch_'))
+            .map(key => key.replace(/^scratch_/, ''));
+        return Promise.resolve({fileNames});
     }
 
     /**
      * Sends a command to the react-native code and returns a promise that will be fulfilled when the react-native code replies
-     * @param {command: string} payload Payload to send to the react-native code
+     * @param {{command: string}} payload Payload to send to the react-native code
+     * @returns {Promise} Promise
      */
-    sendCommand(payload) {
+    sendCommand (payload) {
         if (this.commandPromise) {
-            console.warn("Command already in flight");
+            // eslint-disable-next-line no-console
+            console.warn('Command already in flight');
         }
         const promise = new Promise((resolve, reject) => {
-            this.commandPromise = { resolve, reject };
+            this.commandPromise = {resolve, reject};
         });
         window.ReactNativeWebView.postMessage(JSON.stringify(payload));
         return promise;
@@ -164,9 +191,9 @@ class Marty2 extends EventDispatcher {
 
     /**
      * Called by the react-native code to respond to sendCommand
-     * @param {success: boolean, error?: string} args Response from the react native side
+     * @param {{success: boolean, error: string}} args Response from the react native side
      */
-    onCommandReply(args) {
+    onCommandReply (args) {
         if (this.commandPromise) {
             if (args.success) {
                 this.commandPromise.resolve(args);
@@ -175,7 +202,8 @@ class Marty2 extends EventDispatcher {
             }
             this.commandPromise = null;
         } else {
-            console.warn("Unhandled command reply");
+            // eslint-disable-next-line no-console
+            console.warn('Unhandled command reply');
         }
     }
 
