@@ -45,7 +45,7 @@ class EventDispatcher {
 class Marty2 extends EventDispatcher {
     constructor () {
         super();
-        //this.ip = '192.168.1.171';
+        this.isConnected = false;
         this.ip = null;
         this.demo_sensor = 0;
         this.battRemainCapacityPercent = 0;
@@ -62,18 +62,24 @@ class Marty2 extends EventDispatcher {
         this.setRSSI = this.setRSSI.bind(this);
     }
 
-    setRSSI(rssi) {
-        console.log('setRSSI', rssi);
+    setRSSI (rssi) {
         if (rssi !== this.rssi) {
             this.rssi = rssi;
-            this.dispatchEvent({type: "onRSSIChange", rssi: this.rssi});
+            this.dispatchEvent({type: 'onRSSIChange', rssi: this.rssi});
         }
     }
 
-    setBattRemainCapacityPercent(battRemainCapacityPercent) {
+    setBattRemainCapacityPercent (battRemainCapacityPercent) {
         if (battRemainCapacityPercent !== this.battRemainCapacityPercent) {
             this.battRemainCapacityPercent = battRemainCapacityPercent;
-            this.dispatchEvent({type: "onBattRemainCapacityPercentChange", battRemainCapacityPercent: this.battRemainCapacityPercent});
+            this.dispatchEvent({type: 'onBattRemainCapacityPercentChange', battRemainCapacityPercent: this.battRemainCapacityPercent});
+        }
+    }
+
+    setIsConnected (isConnected) {
+        if (isConnected !== this.isConnected) {
+            this.isConnected = isConnected;
+            this.dispatchEvent({type: 'onIsConnectedChange', isConnected: this.isConnected});
         }
     }
 
@@ -148,8 +154,10 @@ class Marty2 extends EventDispatcher {
     }
 
     /**
-     * Sends a command to the react-native code and returns a promise that will be fulfilled when the react-native code replies
-     * @param {command: string} payload Payload to send to the react-native code
+     * Sends a command to the react-native code and returns a promise that will be 
+     * fulfilled when the react-native code replies
+     * @param {{command: string}} payload Payload to send to the react-native code
+     * @returns {Promise} Promise
      */
     sendCommand(payload) {
         if (this.commandPromise) {
