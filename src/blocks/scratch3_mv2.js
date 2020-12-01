@@ -4,9 +4,11 @@ const Timer = require('../util/timer');
 const Marty2 = require('../util/mv2-rn');
 
 // device type IDs for Robotical Standard Add-ons
-const MV2_DTID_DISTANCE = 83;
-const MV2_DTID_COLOUR = 85;
-const MV2_DTID_IRFOOT = 86;
+const MV2_DTID_DISTANCE = 0x83;
+const MV2_DTID_LIGHT = 0x84;
+const MV2_DTID_COLOUR = 0x85;
+const MV2_DTID_IRFOOT = 0x86;
+const MV2_DTID_NOISE = 0x8A;
 
 /**
  * Questions:
@@ -78,6 +80,8 @@ class Scratch3Mv2Blocks {
             mv2_coloursense: this.colourSense,
             mv2_coloursenseraw: this.colourSenseRaw,
             mv2_distancesense: this.distanceSense,
+            mv2_lightsense: this.lightSense,
+            mv2_noisesense: this.noiseSense,
 
             // sound commands
 
@@ -557,6 +561,46 @@ class Scratch3Mv2Blocks {
         }
         if (dsVal !== null) return dsVal;
         return false;
+    }
+
+    lightSense (args, util){
+        const addons = JSON.parse(mv2.addons).addons;
+        let sensorVal = null;
+        for (var i=0; i < addons.length; i++){
+            if ((args.SENSORCHOICE + args.SENSORCHANNEL) in addons[i].vals){
+                return addons[i].vals[args.SENSORCHOICE + args.SENSORCHANNEL];
+            }
+            // in case we don't find the specific sensor, we'll return the last correctly device typed value
+            if (addons[i].deviceTypeID == MV2_DTID_LIGHT){
+                // device is a light sensor. iterate through channels to find correct one
+                for (const addon in addons[i].vals){
+                    if (addon.includes(args.SENSORCHANNEL))
+                        sensorVal = addons[i].vals[addon];
+                }
+            }
+        }
+        if (sensorVal !== null) return sensorVal;
+        return null;
+    }
+
+    noiseSense (args, util){
+        const addons = JSON.parse(mv2.addons).addons;
+        let sensorVal = null;
+        for (var i=0; i < addons.length; i++){
+            if ((args.SENSORCHOICE + "HighestSinceLastReading") in addons[i].vals){
+                return addons[i].vals[args.SENSORCHOICE + "HighestSinceLastReading"];
+            }
+            // in case we don't find the specific sensor, we'll return the last correctly device typed value
+            if (addons[i].deviceTypeID == MV2_DTID_NOISE){
+                // device is a light sensor. iterate through channels to find correct one
+                for (const addon in addons[i].vals){
+                    if (addon.includes("HighestSinceLastReading"))
+                        sensorVal = addons[i].vals[addon];
+                }
+            }
+        }
+        if (sensorVal !== null) return sensorVal;
+        return null;
     }
 
     // SOUND
