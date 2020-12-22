@@ -47,6 +47,7 @@ class Scratch3Mv2Blocks {
             // motion commands
 
             mv2_getReady: this.getReady,
+            mv2_discoEyes: this.discoEyes,
             mv2_walk_fw: this.walk_fw,
             mv2_walk_bw: this.walk_bw,
             mv2_walk: this.walk,
@@ -113,6 +114,13 @@ class Scratch3Mv2Blocks {
     // MOTION
 
     getReady (args, util) {
+        const moveTime = 3000;
+        console.log('Ready, set, go!');
+        mv2.send_REST(`traj/getReady/?moveTime=${moveTime}`);
+        return new Promise(resolve => setTimeout(resolve, moveTime));
+    }
+
+    discoEyes (args, util) {
         const moveTime = 3000;
         console.log('Ready, set, go!');
         mv2.send_REST(`traj/getReady/?moveTime=${moveTime}`);
