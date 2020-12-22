@@ -5,10 +5,13 @@ const Marty2 = require('../util/mv2-rn');
 
 // device type IDs for Robotical Standard Add-ons
 const MV2_DTID_DISTANCE = 0x83;
-const MV2_DTID_LIGHT = 0x84;
-const MV2_DTID_COLOUR = 0x85;
-const MV2_DTID_IRFOOT = 0x86;
-const MV2_DTID_NOISE = 0x8A;
+const MV2_DTID_LIGHT    = 0x84;
+const MV2_DTID_COLOUR   = 0x85;
+const MV2_DTID_IRFOOT   = 0x86;
+const MV2_DTID_NOISE    = 0x8A;
+const MV2_DTID_LEDFOOT  = 0x87;
+const MV2_DTID_LEDARM   = 0x88;
+const MV2_DTID_LEDEYE   = 0x89;
 
 /**
  * Questions:
@@ -47,7 +50,9 @@ class Scratch3Mv2Blocks {
             // motion commands
 
             mv2_getReady: this.getReady,
-            mv2_discoEyes: this.discoEyes,
+            mv2_discoBlockColour: this.discoBlockColour,
+            mv2_discoChangeAll: this.discoChangeAll,
+            mv2_discoChangeAllPattern: this.discoChangeAllPattern,
             mv2_walk_fw: this.walk_fw,
             mv2_walk_bw: this.walk_bw,
             mv2_walk: this.walk,
@@ -111,6 +116,52 @@ class Scratch3Mv2Blocks {
         };
     }
 
+    // Colour Utils
+
+    getColourHexString(colourChoiceStr){
+        let colour;
+        let colourChoice = parseInt(colourChoiceStr);
+        console.log('DEBUG: hex string is: ' + colourChoice);
+        switch (colourChoice) {
+        case 0:
+            //RED
+            colour = '02ff0000';
+            break;
+        case 1:
+            //GREEN
+            colour = '0200ff00';
+            break;
+        case 2:
+            //BLUE
+            colour = '020000ff';
+            break;
+        case 3:
+            //PINK
+            colour = '02ff00d9';
+            break;
+        case 4:
+            //YELLOW
+            colour = '02fcec00';
+            break;
+        case 5:
+            //WHITE
+            colour = '02ffffff';
+            break;
+        case 6:
+            //OFF
+            colour = '01';
+            break;
+            
+        default:
+            //set default to mode 10
+            colour = '01'
+            break;
+        }
+
+        return colour;
+    }
+
+
     // MOTION
 
     getReady (args, util) {
@@ -120,11 +171,108 @@ class Scratch3Mv2Blocks {
         return new Promise(resolve => setTimeout(resolve, moveTime));
     }
 
-    discoEyes (args, util) {
-        const moveTime = 3000;
-        console.log('Ready, set, go!');
-        mv2.send_REST(`traj/getReady/?moveTime=${moveTime}`);
-        return new Promise(resolve => setTimeout(resolve, moveTime));
+
+    discoChangeAll (args, util) {
+        // const addons = JSON.parse(mv2.addons).addons;
+        const resolveTime = 200;
+        const colourChoice = args.COLOUR;
+        let colour = this.getColourHexString(colourChoice);
+
+
+        // select all LED addons found
+        let addressList = [];
+
+
+        // for (var i=0; i < addons.length; i++){
+        //     if (   addons[i].deviceTypeID == MV2_DTID_LEDEYE
+        //         || addons[i].deviceTypeID == MV2_DTID_LEDARM
+        //         || addons[i].deviceTypeID == MV2_DTID_LEDFOOT){
+                
+        //         addressList.push(addons[i].name);
+        //     }
+        // }
+
+        //example for debugging
+        addressList = ['EyeLed1', 'EyeLed2', 'ArmLed1', 'ArmLed2', 'FootLed1', 'AddOn_I2CA_30'];
+
+        let numberOfLEDAddons = addressList.length;
+        for(var i=0; i < numberOfLEDAddons; i++){
+            let ledDeviceName = addressList.pop();
+            console.log(`elem/${ledDeviceName}/json?cmd=raw&hexWr=${colour}`);
+            mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=${colour}`);
+            console.log(addressList.length);
+        }
+        
+        return new Promise(resolve =>
+            setTimeout(resolve, resolveTime));
+    }
+
+    discoChangeAllPattern (args, util) {
+        // const addons = JSON.parse(mv2.addons).addons;
+        //so if it's set in a forever loop give 0.2s break between each update 
+        const resolveTime = 200;
+        const patternChoice = args.COLOUR;
+        let patternProgram = '10';
+
+        if(patternChoice == '0'){
+            presetProgram = '10';
+        } else if(patternChoice == '1'){
+            patternProgram = '11';
+        } else {
+            //default to 10
+            patternProgram = '10';
+        }
+
+        // select all LED addons found
+        let addressList = [];
+
+        // for (var i=0; i < addons.length; i++){
+        //     if (   addons[i].deviceTypeID == MV2_DTID_LEDEYE
+        //         || addons[i].deviceTypeID == MV2_DTID_LEDARM
+        //         || addons[i].deviceTypeID == MV2_DTID_LEDFOOT){
+                
+        //         addressList.push(addons[i].name);
+        //     }
+        // }
+
+        //example for debugging
+        addressList = ['EyeLed1', 'EyeLed2', 'ArmLed1', 'ArmLed2', 'FootLed1', 'AddOn_I2CA_30'];
+
+        let numberOfLEDAddons = addressList.length;
+        for(var i=0; i < numberOfLEDAddons; i++){
+            let ledDeviceName = addressList.pop();
+            console.log(`elem/${ledDeviceName}/json?cmd=raw&hexWr=${patternProgram}`);
+            mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=${patternProgram}`);
+            console.log(addressList.length);
+        }
+        return new Promise(resolve =>
+            setTimeout(resolve, resolveTime));
+    }
+
+
+    discoBlockColour (args, util) {
+        const addons = JSON.parse(mv2.addons).addons;
+        const resolveTime = 3000;
+        const colourChoice = args.COLOUR;
+
+        // mv2.send_REST(`traj/kick/1/?moveTime=${moveTime}&side=${side}`);
+
+        // set correct addon to program
+
+        // for (var i=0; i < addons.length; i++){
+        //     if (addons[i].deviceTypeID == MV2_DTID_LEDEYE){
+                
+        //     }
+        // }
+
+        let colour = this.getColourHexString(colourChoice);
+
+     
+        console.log(`elem/AddOn_I2CA_31/json?cmd=raw&hexWr=${colour}`);
+        mv2.send_REST(`elem/AddOn_I2CA_31/json?cmd=raw&hexWr=${colour}`);
+
+        return new Promise(resolve =>
+            setTimeout(resolve, resolveTime));
     }
 
     walk_fw (args, util) {
