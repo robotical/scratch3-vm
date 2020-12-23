@@ -147,8 +147,8 @@ class Scratch3Mv2Blocks {
             //WHITE
             colour = '02ffffff';
             break;
-        case 5:
-            //WHITE
+        case 6:
+            //OFF
             colour = '01';
             break;
             
@@ -675,7 +675,7 @@ class Scratch3Mv2Blocks {
             sensorname = addons[selectedID].name;
         }
 
-        if (addons[selectedID].vals[args.SENSORCHOICE + "Air"]){
+        if (addons[selectedID].vals[sensorname + "Air"]){
             return "air";
         } else {
             //mv2.send_REST('return val: ' + addons[i].vals[args.SENSORCHOICE]);
