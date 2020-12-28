@@ -51,8 +51,8 @@ class Scratch3Mv2Blocks {
 
             mv2_getReady: this.getReady,
             mv2_discoChangeBlockColour: this.discoChangeBlockColour,
-            mv2_discoChangeAllColour: this.discoChangeAllColour,
-            mv2_discoChangeAllPattern: this.discoChangeAllPattern,
+            // mv2_discoChangeAllColour: this.discoChangeAllColour,
+            mv2_discoChangeBlockPattern: this.discoChangeBlockPattern,
             mv2_walk_fw: this.walk_fw,
             mv2_walk_bw: this.walk_bw,
             mv2_walk: this.walk,
@@ -177,7 +177,9 @@ class Scratch3Mv2Blocks {
             case 2:
                 //BLUE
                 boardDeviceType = MV2_DTID_LEDFOOT;
-                break;            
+                break;     
+            case 3:
+                boardDeviceType = 'all';
             default:
                 //set default to mode 10
                 boardDeviceType = 0x00
@@ -197,16 +199,7 @@ class Scratch3Mv2Blocks {
         return new Promise(resolve => setTimeout(resolve, moveTime));
     }
 
-
-    discoChangeAllColour (args, util) {
-        const addons = JSON.parse(mv2.addons).addons;
-        const resolveTime = 200;
-        const colourChoice = args.COLOUR;
-
-        let colour = this.getColourHexString(colourChoice);
-
-
-        // select all LED addons found
+    getAllDiscoBoards(addons){
         var addressList = [];
 
         for (var i=0; i < addons.length; i++){
@@ -218,22 +211,63 @@ class Scratch3Mv2Blocks {
                 addressList.push(addons[i].name);
             }
         }
-
-        let numberOfLEDAddons = addressList.length;
-        for(var i=0; i < numberOfLEDAddons; i++){
-            let ledDeviceName = addressList.pop();
-            // console.log(`elem/${ledDeviceName}/json?cmd=raw&hexWr=${colour}`);
-            mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=${colour}`);
-        }
-        
-        return new Promise(resolve =>
-            setTimeout(resolve, resolveTime));
+        return addressList;
     }
 
-    discoChangeAllPattern (args, util) {
+    getFilteredDiscoBoards(addons, filterBoardType){
+        var addressList = [];
+
+        for (var i=0; i < addons.length; i++){
+            if (addons[i].deviceTypeID == filterBoardType){
+                addressList.push(addons[i].name);
+            }
+        }
+
+        return addressList;
+    }
+
+
+    // discoChangeAllColour (args, util) {
+    //     const addons = JSON.parse(mv2.addons).addons;
+    //     const resolveTime = 200;
+    //     const colourChoice = args.COLOUR;
+
+    //     let colour = this.getColourHexString(colourChoice);
+
+
+    //     // select all LED addons found
+    //     var addressList = [];
+
+    //     // for (var i=0; i < addons.length; i++){
+
+    //     //     if (   addons[i].deviceTypeID == MV2_DTID_LEDEYE
+    //     //         || addons[i].deviceTypeID == MV2_DTID_LEDARM
+    //     //         || addons[i].deviceTypeID == MV2_DTID_LEDFOOT){
+                
+    //     //         addressList.push(addons[i].name);
+    //     //     }
+    //     // }
+
+    //     getAllDiscoBoards(addons);
+
+    //     let numberOfLEDAddons = addressList.length;
+    //     for(var i=0; i < numberOfLEDAddons; i++){
+    //         let ledDeviceName = addressList.pop();
+    //         // console.log(`elem/${ledDeviceName}/json?cmd=raw&hexWr=${colour}`);
+    //         mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=${colour}`);
+    //     }
+        
+    //     return new Promise(resolve =>
+    //         setTimeout(resolve, resolveTime));
+    // }
+
+
+    discoChangeBlockPattern (args, util) {
         const addons = JSON.parse(mv2.addons).addons;
         //so if it's set in a forever loop give 0.2s break between each update 
         const resolveTime = 200;
+        const boardChoice = args.BOARDTYPE;
+        let filterBoardType = this.getDiscoBoardType(boardChoice);
         const patternChoice = args.PATTERN;
         let patternProgram = '10';
 
@@ -254,22 +288,18 @@ class Scratch3Mv2Blocks {
         // select all LED addons found
         let addressList = [];
 
-        for (var i=0; i < addons.length; i++){
-
-            if (   addons[i].deviceTypeID == MV2_DTID_LEDEYE
-                || addons[i].deviceTypeID == MV2_DTID_LEDARM
-                || addons[i].deviceTypeID == MV2_DTID_LEDFOOT){
-                
-                addressList.push(addons[i].name);
-            }
+        if( filterBoardType == 'all') {
+            addressList = getAllDiscoBoards(addons);
+        } else {
+            addressList = getFilteredDiscoBoards(addons, filterBoardType)
         }
 
         let numberOfLEDAddons = addressList.length;
         for(var i=0; i < numberOfLEDAddons; i++){
             let ledDeviceName = addressList.pop();
-            console.log(`elem/${ledDeviceName}/json?cmd=raw&hexWr=${patternProgram}`);
+            // console.log(`elem/${ledDeviceName}/json?cmd=raw&hexWr=${patternProgram}`);
             mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=${patternProgram}`);
-            console.log(addressList.length);
+            // console.log(addressList.length);
         }
         return new Promise(resolve =>
             setTimeout(resolve, resolveTime));
@@ -287,18 +317,16 @@ class Scratch3Mv2Blocks {
         // select all LED addons found that match the board type
         let addressList = [];
 
-        for (var i=0; i < addons.length; i++){
-            if (addons[i].deviceTypeID == filterBoardType){
-                addressList.push(addons[i].name);
-            }
+        if( filterBoardType == 'all') {
+            addressList = getAllDiscoBoards(addons);
+        } else {
+            addressList = getFilteredDiscoBoards(addons, filterBoardType)
         }
      
         let numberOfLEDAddons = addressList.length;
         for(var i=0; i < numberOfLEDAddons; i++){
             let ledDeviceName = addressList.pop();
-            console.log(`elem/${ledDeviceName}/json?cmd=raw&hexWr=${colour}`);
             mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=${colour}`);
-            console.log(addressList.length);
         }
         return new Promise(resolve =>
             setTimeout(resolve, resolveTime));
