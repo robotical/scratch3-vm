@@ -180,11 +180,15 @@ class Scratch3Mv2Blocks {
                 break;     
             case 3:
                 boardDeviceType = 'all';
+                console.log("case 3: " + boardDeviceType);
+                break;
             default:
                 //set default to mode 10
                 boardDeviceType = 0x00
                 break;
         }
+
+        console.log("returning: " + boardDeviceType);
 
         return boardDeviceType;
     }
@@ -227,41 +231,6 @@ class Scratch3Mv2Blocks {
     }
 
 
-    // discoChangeAllColour (args, util) {
-    //     const addons = JSON.parse(mv2.addons).addons;
-    //     const resolveTime = 200;
-    //     const colourChoice = args.COLOUR;
-
-    //     let colour = this.getColourHexString(colourChoice);
-
-
-    //     // select all LED addons found
-    //     var addressList = [];
-
-    //     // for (var i=0; i < addons.length; i++){
-
-    //     //     if (   addons[i].deviceTypeID == MV2_DTID_LEDEYE
-    //     //         || addons[i].deviceTypeID == MV2_DTID_LEDARM
-    //     //         || addons[i].deviceTypeID == MV2_DTID_LEDFOOT){
-                
-    //     //         addressList.push(addons[i].name);
-    //     //     }
-    //     // }
-
-    //     getAllDiscoBoards(addons);
-
-    //     let numberOfLEDAddons = addressList.length;
-    //     for(var i=0; i < numberOfLEDAddons; i++){
-    //         let ledDeviceName = addressList.pop();
-    //         // console.log(`elem/${ledDeviceName}/json?cmd=raw&hexWr=${colour}`);
-    //         mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=${colour}`);
-    //     }
-        
-    //     return new Promise(resolve =>
-    //         setTimeout(resolve, resolveTime));
-    // }
-
-
     discoChangeBlockPattern (args, util) {
         const addons = JSON.parse(mv2.addons).addons;
         //so if it's set in a forever loop give 0.2s break between each update 
@@ -289,9 +258,9 @@ class Scratch3Mv2Blocks {
         let addressList = [];
 
         if( filterBoardType == 'all') {
-            addressList = getAllDiscoBoards(addons);
+            addressList = this.getAllDiscoBoards(addons);
         } else {
-            addressList = getFilteredDiscoBoards(addons, filterBoardType)
+            addressList = this.getFilteredDiscoBoards(addons, filterBoardType)
         }
 
         let numberOfLEDAddons = addressList.length;
@@ -318,9 +287,9 @@ class Scratch3Mv2Blocks {
         let addressList = [];
 
         if( filterBoardType == 'all') {
-            addressList = getAllDiscoBoards(addons);
+            addressList = this.getAllDiscoBoards(addons);
         } else {
-            addressList = getFilteredDiscoBoards(addons, filterBoardType)
+            addressList = this.getFilteredDiscoBoards(addons, filterBoardType)
         }
      
         let numberOfLEDAddons = addressList.length;
