@@ -51,8 +51,8 @@ class Scratch3Mv2Blocks {
 
             mv2_getReady: this.getReady,
             mv2_discoChangeBlockColour: this.discoChangeBlockColour,
-            // mv2_discoChangeAllColour: this.discoChangeAllColour,
             mv2_discoChangeBlockPattern: this.discoChangeBlockPattern,
+            mv2_discoChangeRegionColour: this.discoChangeRegionColour,
             mv2_walk_fw: this.walk_fw,
             mv2_walk_bw: this.walk_bw,
             mv2_walk: this.walk,
@@ -125,36 +125,36 @@ class Scratch3Mv2Blocks {
         switch (colourChoice) {
         case 0:
             //RED
-            colour = '02ff0000';
+            colour = 'ff0000';
             break;
         case 1:
             //GREEN
-            colour = '0200ff00';
+            colour = '00ff00';
             break;
         case 2:
             //BLUE
-            colour = '020000ff';
+            colour = '0000ff';
             break;
         case 3:
             //PINK
-            colour = '02ff00d9';
+            colour = 'ff00d9';
             break;
         case 4:
             //YELLOW
-            colour = '02fcec00';
+            colour = 'fcec00';
             break;
         case 5:
             //WHITE
-            colour = '02ffffff';
+            colour = 'ffffff';
             break;
         case 6:
             //OFF
-            colour = '01';
+            colour = 'off';
             break;
             
         default:
             //set default to mode 01 (OFF)
-            colour = '01'
+            colour = 'off'
             break;
         }
 
@@ -264,6 +264,8 @@ class Scratch3Mv2Blocks {
         }
 
         let numberOfLEDAddons = addressList.length;
+        mv2.send_REST("Number of addons is: " + numberOfLEDAddons);
+
         for(var i=0; i < numberOfLEDAddons; i++){
             let ledDeviceName = addressList.pop();
             // console.log(`elem/${ledDeviceName}/json?cmd=raw&hexWr=${patternProgram}`);
@@ -280,6 +282,39 @@ class Scratch3Mv2Blocks {
         const resolveTime = 200;
         const colourChoice = args.COLOUR;
         const boardChoice = args.BOARDTYPE;
+        mv2.send_REST("Number of addons is: " + addons.length);
+        
+        let colour = this.getColourHexString(colourChoice);
+        let filterBoardType = this.getDiscoBoardType(boardChoice);
+
+
+
+
+        // select all LED addons found that match the board type
+        let addressList = [];
+
+        if( filterBoardType == 'all') {
+            addressList = this.getAllDiscoBoards(addons);
+        } else {
+            addressList = this.getFilteredDiscoBoards(addons, filterBoardType)
+        }
+     
+        let numberOfLEDAddons = addressList.length;
+        mv2.send_REST("Number of addons is: " + numberOfLEDAddons);
+        for(var i=0; i < numberOfLEDAddons; i++){
+            let ledDeviceName = addressList.pop();
+            mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=02${colour}`);
+        }
+        return new Promise(resolve =>
+            setTimeout(resolve, resolveTime));
+    }
+
+    discoChangeRegionColour (args, util) {
+        const addons = JSON.parse(mv2.addons).addons;
+        const resolveTime = 200;
+        const colourChoice = args.COLOUR;
+        const boardChoice = args.BOARDTYPE;
+        const regionChoice = args.REGION;
         let colour = this.getColourHexString(colourChoice);
         let filterBoardType = this.getDiscoBoardType(boardChoice);
 
@@ -293,9 +328,11 @@ class Scratch3Mv2Blocks {
         }
      
         let numberOfLEDAddons = addressList.length;
+        mv2.send_REST("Number of addons is: " + numberOfLEDAddons);
+
         for(var i=0; i < numberOfLEDAddons; i++){
             let ledDeviceName = addressList.pop();
-            mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=${colour}`);
+            mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=040${regionChoice}${colour}`);
         }
         return new Promise(resolve =>
             setTimeout(resolve, resolveTime));
