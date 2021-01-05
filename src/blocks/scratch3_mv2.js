@@ -264,7 +264,6 @@ class Scratch3Mv2Blocks {
         }
 
         let numberOfLEDAddons = addressList.length;
-        mv2.send_REST("Number of addons is: " + numberOfLEDAddons);
 
         for(var i=0; i < numberOfLEDAddons; i++){
             let ledDeviceName = addressList.pop();
@@ -282,13 +281,9 @@ class Scratch3Mv2Blocks {
         const resolveTime = 200;
         const colourChoice = args.COLOUR;
         const boardChoice = args.BOARDTYPE;
-        mv2.send_REST("Number of addons is: " + addons.length);
-        
+
         let colour = this.getColourHexString(colourChoice);
         let filterBoardType = this.getDiscoBoardType(boardChoice);
-
-
-
 
         // select all LED addons found that match the board type
         let addressList = [];
@@ -300,7 +295,6 @@ class Scratch3Mv2Blocks {
         }
      
         let numberOfLEDAddons = addressList.length;
-        mv2.send_REST("Number of addons is: " + numberOfLEDAddons);
         for(var i=0; i < numberOfLEDAddons; i++){
             let ledDeviceName = addressList.pop();
             mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=02${colour}`);
@@ -328,7 +322,6 @@ class Scratch3Mv2Blocks {
         }
      
         let numberOfLEDAddons = addressList.length;
-        mv2.send_REST("Number of addons is: " + numberOfLEDAddons);
 
         for(var i=0; i < numberOfLEDAddons; i++){
             let ledDeviceName = addressList.pop();
