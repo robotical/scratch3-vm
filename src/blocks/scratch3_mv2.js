@@ -65,6 +65,9 @@ class Scratch3Mv2Blocks {
             mv2_dance: this.dance,
             mv2_standStraight: this.standStraight,
             mv2_hold: this.hold,
+            mv2_gripperArmBasic: this.gripperArmBasic,
+            mv2_gripperArmTimed: this.gripperArmTimed,
+
 
             // sensors
 
@@ -109,6 +112,25 @@ class Scratch3Mv2Blocks {
 
         };
     }
+
+    //utility functions
+
+    decTo4cHexString (decimal) {
+
+        let hexString = decimal.toString(16);
+
+        if(hexString.length == 1){
+            hexString = "000" + hexString;
+        } else if(hexString.length == 2){
+            hexString = "00" + hexString;
+        } else if(hexString.length == 3) {
+            hexString = "0" + hexString;
+        } else if(hexString.length > 4 || hexString.length == 0) {
+            hexString = "0000";
+        }
+        return hexString;
+    }
+
 
     // MOTION
 
@@ -303,6 +325,52 @@ class Scratch3Mv2Blocks {
         const moveTime = parseFloat(args.MOVETIME) * 1000;
         console.log(`traj/hold/?moveTime=${moveTime}`);
         mv2.send_REST(`traj/hold/?moveTime=${moveTime}`);
+        return new Promise(resolve =>
+            setTimeout(resolve, moveTime));
+    }
+
+    gripperArmBasic (args, util) {
+        //default time is set to 1 second
+        const moveTime = 1 * 1000;
+        //This block sets hand to open or closed
+        const handPosition = args.HAND_POSITION;
+        const moveTimeHexCommand = this.decTo4cHexString(moveTime);
+        let handCommand = "";
+
+        if (handPosition == 1){ //closed
+            handCommand = "0384";
+        } else {                //open
+            handCommand = "0000";  
+        }
+
+        console.log(`elem/AddOn_I2CB_16/json?cmd=raw&hexWr=0x00${handCommand}${moveTimeHexCommand}`);
+        // mv2.send_REST(`traj/hold/?moveTime=${moveTime}`);
+
+        return new Promise(resolve =>
+            setTimeout(resolve, moveTime));
+
+    }
+
+    gripperArmTimed (args, util) {
+        var moveTime = parseFloat(args.MOVETIME) * 1000;
+        //set upper threshold 65.5s as ffff is 65535
+        if (moveTime > 65500){
+            moveTime = 65500;
+        }
+        //Open or closed
+        const handPosition = args.HAND_POSITION;
+        const moveTimeHexCommand = this.decTo4cHexString(moveTime);
+        let handCommand = "";
+
+        if (handPosition == 1){ //closed
+            handCommand = "0384";
+        } else {                //open
+            handCommand = "0000";  
+        }
+
+        console.log(`elem/AddOn_I2CB_16/json?cmd=raw&hexWr=0x00${handCommand}${moveTimeHexCommand}`);
+        // mv2.send_REST(`traj/hold/?moveTime=${moveTime}`);
+
         return new Promise(resolve =>
             setTimeout(resolve, moveTime));
     }
