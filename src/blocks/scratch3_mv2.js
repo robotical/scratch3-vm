@@ -4,11 +4,12 @@ const Timer = require('../util/timer');
 const Marty2 = require('../util/mv2-rn');
 
 // device type IDs for Robotical Standard Add-ons
-const MV2_DTID_DISTANCE = 0x83;
-const MV2_DTID_LIGHT = 0x84;
-const MV2_DTID_COLOUR = 0x85;
-const MV2_DTID_IRFOOT = 0x86;
-const MV2_DTID_NOISE = 0x8A;
+const MV2_DTID_DISTANCE  = 0x83;
+const MV2_DTID_LIGHT     = 0x84;
+const MV2_DTID_COLOUR    = 0x85;
+const MV2_DTID_IRFOOT    = 0x86;
+const MV2_DTID_NOISE     = 0x8A;
+const MV2_DTID_GRABSERVO = 0x8B;
 
 /**
  * Questions:
@@ -65,6 +66,9 @@ class Scratch3Mv2Blocks {
             mv2_dance: this.dance,
             mv2_standStraight: this.standStraight,
             mv2_hold: this.hold,
+            mv2_grabberArmBasic: this.grabberArmBasic,
+            mv2_grabberArmTimed: this.grabberArmTimed,
+
 
             // sensors
 
@@ -108,6 +112,44 @@ class Scratch3Mv2Blocks {
             mv2_kickRight: this.kickRight, */
 
         };
+    }
+
+    //utility functions
+
+    decTo4cHexString (decimal) {
+
+        let hexString = decimal.toString(16);
+        hexString = hexString.toUpperCase();
+
+        if(hexString.length == 1){
+            hexString = "000" + hexString;
+        } else if(hexString.length == 2){
+            hexString = "00" + hexString;
+        } else if(hexString.length == 3) {
+            hexString = "0" + hexString;
+        } else if(hexString.length > 4 || hexString.length == 0) {
+            hexString = "0000";
+        }
+        return hexString;
+    }
+
+    // return padded hex string, up to 8 nibbles long
+    hexstr(val, length){
+        // for negative numbers, zero right shift fill, convert and then get the end of the resulting 32 bit number
+        if (val < 0) return (val >>> 0).toString(16).substr(0-length);
+        // for positive numbers, convert to hex and pad with zeros
+        return val.toString(16).padStart(length, '0');
+    }
+
+    // return name of first addon found with a specific Device Type ID
+    addonNameByDTID(dtid){
+        const addons = JSON.parse(mv2.addons).addons;
+        for (var i=0; i < addons.length; i++){
+            if (addons[i].deviceTypeID == dtid){
+                return addons[i].name;
+            }
+        }
+        return null;
     }
 
     // MOTION
@@ -303,6 +345,80 @@ class Scratch3Mv2Blocks {
         const moveTime = parseFloat(args.MOVETIME) * 1000;
         console.log(`traj/hold/?moveTime=${moveTime}`);
         mv2.send_REST(`traj/hold/?moveTime=${moveTime}`);
+        return new Promise(resolve =>
+            setTimeout(resolve, moveTime));
+    }
+
+    grabberArmMove(keypoints, name=null, enable=true){
+        // keypoints should be array of [angle, time]
+        // angle in degrees, time in ms
+        if (!name){
+            name = this.addonNameByDTID(MV2_DTID_GRABSERVO);
+            if (!name) return false;
+        }
+        const numKeypoints = keypoints.length;
+        if (!numKeypoints) return false;
+        // servo opcode 00 is move, overwriting current movequeue. number of keypoints is given in second byte
+        var cmdStr = "00" + this.hexstr(numKeypoints, 2);
+        for (i in keypoints){
+            // servo expects 0.1 degree resolution, as an int16. So x10 and floor.
+            cmdStr += this.hexstr(parseInt(keypoints[i][0]*10), 4);
+            // movement time, in ms as uint16
+            cmdStr += this.hexstr(keypoints[i][1], 4);
+        }
+
+        if (enable){
+            // enable motor
+            mv2.send_REST(`elem/${name}/json?cmd=raw&hexWr=2001`);
+        }
+
+        // send movement command
+        mv2.send_REST(`elem/${name}/json?cmd=raw&hexWr=${cmdStr}`);
+        return true;
+    }
+
+    grabberArmBasic (args, util) {
+        //default time is set to 1 second
+        const moveTime = 1 * 1000;
+        //This block sets hand to open or closed
+        const handPosition = args.HAND_POSITION;
+
+        var keypoints = null;
+        if (handPosition == 1){ //closed
+            // close hand and hold for 30s. 90 degree angle
+            keypoints = [[90, moveTime], [90, 30000]];
+        } else {                //open
+            keypoints = [[0, moveTime]];
+        }
+
+        if (!this.grabberArmMove(keypoints)) return false;
+
+        return new Promise(resolve =>
+            setTimeout(resolve, moveTime));
+
+    }
+
+    grabberArmTimed (args, util) {
+        const addons = JSON.parse(mv2.addons).addons;
+        var moveTime = parseFloat(args.MOVETIME) * 1000;
+        //set upper threshold 65.5s as ffff is 65535
+        if (moveTime > 65500){
+            moveTime = 65500;
+        }
+        //Open or closed
+        const handPosition = args.HAND_POSITION;
+
+        let keypoints = null;
+        if (handPosition == 1){
+            // close and and hold for 30s
+            keypoints = [[90, moveTime], [90, 30000]];
+        } else {
+            //open
+            keypoints= [[0, moveTime]];
+        }
+
+        if (!this.grabberArmMove(keypoints)) return false;
+
         return new Promise(resolve =>
             setTimeout(resolve, moveTime));
     }
