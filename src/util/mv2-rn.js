@@ -2,6 +2,9 @@
  * @fileoverview
  * Functions for interacting with Marty v2 via a REST interface
  */
+
+const marty2js = require('marty2js');
+
 class EventDispatcher {
     constructor () {
         this._listeners = [];
@@ -60,6 +63,12 @@ class Marty2 extends EventDispatcher {
         this.listSavedScratchFiles = this.listSavedScratchFiles.bind(this);
         this.deleteScratchFile = this.deleteScratchFile.bind(this);
         this.setRSSI = this.setRSSI.bind(this);
+        this.isInApp = false;
+        this._martyConnector = new marty2js.Marty();
+    }
+
+    isWorkingInApp() {
+        this.isInApp = true;
     }
 
     setRSSI (rssi) {
@@ -222,6 +231,13 @@ class Marty2 extends EventDispatcher {
 
     set_ip (ip) {
         this.ip = ip;
+    }
+
+    connect () {
+        console.log("connect " + this._martyConnector);
+        this._martyConnector.connect(new marty2js.DiscoveredRIC("Marty", "Marty", "Marty", 0, 
+            // "ws://" + this.ip + "/ws"));
+            "ws://192.168.86.98/ws"));
     }
 }
 
