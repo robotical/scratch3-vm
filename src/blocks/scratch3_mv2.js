@@ -4,11 +4,12 @@ const Timer = require('../util/timer');
 const Marty2 = require('../util/mv2-rn');
 
 // device type IDs for Robotical Standard Add-ons
-const MV2_DTID_DISTANCE = 0x83;
-const MV2_DTID_LIGHT = 0x84;
-const MV2_DTID_COLOUR = 0x85;
-const MV2_DTID_IRFOOT = 0x86;
-const MV2_DTID_NOISE = 0x8A;
+const MV2_DTID_DISTANCE  = 0x83;
+const MV2_DTID_LIGHT     = 0x84;
+const MV2_DTID_COLOUR    = 0x85;
+const MV2_DTID_IRFOOT    = 0x86;
+const MV2_DTID_NOISE     = 0x8A;
+const MV2_DTID_GRABSERVO = 0x8B;
 
 /**
  * Questions:
@@ -118,6 +119,7 @@ class Scratch3Mv2Blocks {
     decTo4cHexString (decimal) {
 
         let hexString = decimal.toString(16);
+        hexString = hexString.toUpperCase();
 
         if(hexString.length == 1){
             hexString = "000" + hexString;
@@ -330,6 +332,7 @@ class Scratch3Mv2Blocks {
     }
 
     gripperArmBasic (args, util) {
+        const addons = JSON.parse(mv2.addons).addons;
         //default time is set to 1 second
         const moveTime = 1 * 1000;
         //This block sets hand to open or closed
@@ -343,8 +346,15 @@ class Scratch3Mv2Blocks {
             handCommand = "0000";  
         }
 
-        console.log(`elem/AddOn_I2CB_16/json?cmd=raw&hexWr=0x00${handCommand}${moveTimeHexCommand}`);
-        // mv2.send_REST(`traj/hold/?moveTime=${moveTime}`);
+        var grabServoName = "";
+        for (var i=0; i < addons.length; i++){
+            if (addons[i].deviceTypeID == MV2_DTID_GRABSERVO){
+                grabServoName = addons[i].name;
+                break;
+            }
+        }
+
+        mv2.send_REST(`elem/${grabServoName}/json?cmd=raw&hexWr=0001${handCommand}${moveTimeHexCommand}`);
 
         return new Promise(resolve =>
             setTimeout(resolve, moveTime));
@@ -352,6 +362,7 @@ class Scratch3Mv2Blocks {
     }
 
     gripperArmTimed (args, util) {
+        const addons = JSON.parse(mv2.addons).addons;
         var moveTime = parseFloat(args.MOVETIME) * 1000;
         //set upper threshold 65.5s as ffff is 65535
         if (moveTime > 65500){
@@ -368,8 +379,15 @@ class Scratch3Mv2Blocks {
             handCommand = "0000";  
         }
 
-        console.log(`elem/AddOn_I2CB_16/json?cmd=raw&hexWr=0x00${handCommand}${moveTimeHexCommand}`);
-        // mv2.send_REST(`traj/hold/?moveTime=${moveTime}`);
+        var grabServoName = "";
+        for (var i=0; i < addons.length; i++){
+            if (addons[i].deviceTypeID == MV2_DTID_GRABSERVO){
+                grabServoName = addons[i].name;
+                break;
+            }
+        }
+
+        mv2.send_REST(`elem/${grabServoName}/json?cmd=raw&hexWr=0001${handCommand}${moveTimeHexCommand}`);
 
         return new Promise(resolve =>
             setTimeout(resolve, moveTime));
