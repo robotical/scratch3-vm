@@ -51,6 +51,7 @@ class Marty2 extends EventDispatcher {
         super();
         this.isConnected = false;
         this.ip = null;
+        this.ipAddress = '';
         this.demo_sensor = 0;
         this.battRemainCapacityPercent = '100';
         this.rssi = '0';
@@ -115,7 +116,11 @@ class Marty2 extends EventDispatcher {
         //                 });
         //        } else {
         try {
-            window.ReactNativeWebView.postMessage(cmd); // this call triggers onMessage in the app
+            if (mv2.isInApp) {
+                window.ReactNativeWebView.postMessage(cmd); // this call triggers onMessage in the app
+            } else {
+                this._martyConnector.runCommand(cmd);
+            }
         } catch (err) {
             // eslint-disable-next-line no-console
             console.log(`Error sending to react native: ${err}`);
@@ -198,23 +203,28 @@ class Marty2 extends EventDispatcher {
      * @param {{command: string}} payload Payload to send to the react-native code
      * @returns {Promise} Promise
      */
-    sendCommand (payload) {
-        if (this.commandPromise) {
-            // eslint-disable-next-line no-console
-            console.warn('Command already in flight');
+    sendCommand(payload) {
+        if (mv2.isInApp) {
+            if (this.commandPromise) {
+                // eslint-disable-next-line no-console
+                console.warn('Command already in flight');
+            }
+            const promise = new Promise((resolve, reject) => {
+                this.commandPromise = { resolve, reject };
+            });
+            window.ReactNativeWebView.postMessage(JSON.stringify(payload));
+            return promise;
+
+        } else {
+            return this._martyConnector.runCommand(JSON.stringify(payload));
         }
-        const promise = new Promise((resolve, reject) => {
-            this.commandPromise = {resolve, reject};
-        });
-        window.ReactNativeWebView.postMessage(JSON.stringify(payload));
-        return promise;
     }
 
     /**
      * Called by the react-native code to respond to sendCommand
      * @param {{success: boolean, error: string}} args Response from the react native side
      */
-    onCommandReply (args) {
+    onCommandReply(args) {
         if (this.commandPromise) {
             if (args.success) {
                 this.commandPromise.resolve(args);
@@ -237,19 +247,30 @@ class Marty2 extends EventDispatcher {
         this.ip = ip;
     }
 
-    connect (ipAddress) {
+    async connect(ipAddress) {
         console.log(`mv2 connect to ${ipAddress}`);
-        this._martyConnector.connect(new marty2js.DiscoveredRIC(
-            // ipAddress,
-            "192.168.86.98",
-            "Marty"
+        try {
+            this.ipAddress = ipAddress;
+            return await this._martyConnector.connect(new marty2js.DiscoveredRIC(
+                ipAddress,
+                "Marty"
             ));
+        } catch (error) {
+            console.warn(`Failed to connect to Marty`);
+            this.dispatchEvent({ type: 'connectionFailed', isConnected: false });
+        }
+        return false;
+    }
+
+    async disconnect() {
+        await this._martyConnector.disconnect();
     }
 
     onConnEvent(eventCode, args) {
-        console.log(`conn event ${eventCode}`);
+        // console.log(`conn event ${eventCode}`);
         if (eventCode === RICEvent.CONNECTED_RIC) {
             this.setIsConnected(true);
+            this.setRSSI(-50);
         } else if (eventCode === RICEvent.DISCONNECTED_RIC) {
             this.setIsConnected(false);
         }
@@ -266,7 +287,7 @@ class Marty2 extends EventDispatcher {
     }
 
     onRxPowerStatus(powerStatus) {
-        // this.battRemainCapacityPercent = powerStatus.battRemainCapacityPercent;
+        this.setBattRemainCapacityPercent(powerStatus.powerStatus.battRemainCapacityPercent);
         // console.log(`power now ${this.battRemainCapacityPercent}`, powerStatus);
     }
 
