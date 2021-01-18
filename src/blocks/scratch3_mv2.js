@@ -66,8 +66,8 @@ class Scratch3Mv2Blocks {
             mv2_dance: this.dance,
             mv2_standStraight: this.standStraight,
             mv2_hold: this.hold,
-            mv2_gripperArmBasic: this.gripperArmBasic,
-            mv2_gripperArmTimed: this.gripperArmTimed,
+            mv2_grabberArmBasic: this.grabberArmBasic,
+            mv2_grabberArmTimed: this.grabberArmTimed,
 
 
             // sensors
@@ -331,7 +331,7 @@ class Scratch3Mv2Blocks {
             setTimeout(resolve, moveTime));
     }
 
-    gripperArmBasic (args, util) {
+    grabberArmBasic (args, util) {
         const addons = JSON.parse(mv2.addons).addons;
         //default time is set to 1 second
         const moveTime = 1 * 1000;
@@ -361,7 +361,7 @@ class Scratch3Mv2Blocks {
 
     }
 
-    gripperArmTimed (args, util) {
+    grabberArmTimed (args, util) {
         const addons = JSON.parse(mv2.addons).addons;
         var moveTime = parseFloat(args.MOVETIME) * 1000;
         //set upper threshold 65.5s as ffff is 65535
