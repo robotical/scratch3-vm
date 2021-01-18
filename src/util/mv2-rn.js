@@ -4,6 +4,7 @@
  */
 
 const marty2js = require('marty2js');
+const { RICEvent } = require('marty2js/dist/RICTypes');
 
 class EventDispatcher {
     constructor () {
@@ -51,10 +52,11 @@ class Marty2 extends EventDispatcher {
         this.isConnected = false;
         this.ip = null;
         this.demo_sensor = 0;
-        this.battRemainCapacityPercent = 0;
-        this.rssi = 0;
-        this.servos = 0;
-        this.accel = 0;
+        this.battRemainCapacityPercent = '100';
+        this.rssi = '0';
+        this.servos = '{"smartServos":{}}';
+        this.accel = '{"accel":{"x":0,"y":0,"z":0}}';
+        this.addons = '{"addons":[]}'
         this.commandPromise = null;
         this.onCommandReply = this.onCommandReply.bind(this);
         this.sendCommand = this.sendCommand.bind(this);
@@ -65,6 +67,7 @@ class Marty2 extends EventDispatcher {
         this.setRSSI = this.setRSSI.bind(this);
         this.isInApp = false;
         this._martyConnector = new marty2js.Marty();
+        this._martyConnector.setEventListener(this);
     }
 
     isWorkingInApp() {
@@ -89,6 +92,7 @@ class Marty2 extends EventDispatcher {
         if (isConnected !== this.isConnected) {
             this.isConnected = isConnected;
             this.dispatchEvent({type: 'onIsConnectedChange', isConnected: this.isConnected});
+            console.log("Marty is connected");
         }
     }
 
@@ -233,11 +237,42 @@ class Marty2 extends EventDispatcher {
         this.ip = ip;
     }
 
-    connect () {
-        console.log("connect " + this._martyConnector);
-        this._martyConnector.connect(new marty2js.DiscoveredRIC("Marty", "Marty", "Marty", 0, 
-            // "ws://" + this.ip + "/ws"));
-            "ws://192.168.86.98/ws"));
+    connect (ipAddress) {
+        console.log(`mv2 connect to ${ipAddress}`);
+        this._martyConnector.connect(new marty2js.DiscoveredRIC(
+            // ipAddress,
+            "192.168.86.98",
+            "Marty"
+            ));
+    }
+
+    onConnEvent(eventCode, args) {
+        console.log(`conn event ${eventCode}`);
+        if (eventCode === RICEvent.CONNECTED_RIC) {
+            this.setIsConnected(true);
+        } else if (eventCode === RICEvent.DISCONNECTED_RIC) {
+            this.setIsConnected(false);
+        }
+    }
+
+    onRxSmartServo(smartServos) {
+        // console.log(`servo`, smartServos);
+        this.servos = JSON.stringify(smartServos);
+    }
+
+    onRxIMU(imuData) {
+        // console.log(`imu`);
+        this.accel = JSON.stringify(imuData);
+    }
+
+    onRxPowerStatus(powerStatus) {
+        // this.battRemainCapacityPercent = powerStatus.battRemainCapacityPercent;
+        // console.log(`power now ${this.battRemainCapacityPercent}`, powerStatus);
+    }
+
+    onRxAddOnPub(addOnInfo) {
+        this.addons = JSON.stringify(addOnInfo);
+        // console.log(`addOn`);
     }
 }
 
