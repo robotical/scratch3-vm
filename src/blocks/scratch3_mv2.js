@@ -133,6 +133,24 @@ class Scratch3Mv2Blocks {
         return hexString;
     }
 
+    // return padded hex string, up to 8 nibbles long
+    hexstr(val, length){
+        // for negative numbers, zero right shift fill, convert and then get the end of the resulting 32 bit number
+        if (val < 0) return (val >>> 0).toString(16).substr(0-length);
+        // for positive numbers, convert to hex and pad with zeros
+        return val.toString(16).padStart(length, '0');
+    }
+
+    // return name of first addon found with a specific Device Type ID
+    addonNameByDTID(dtid){
+        const addons = JSON.parse(mv2.addons).addons;
+        for (var i=0; i < addons.length; i++){
+            if (addons[i].deviceTypeID == dtid){
+                return addons[i].name;
+            }
+        }
+        return null;
+    }
 
     // MOTION
 
@@ -331,30 +349,49 @@ class Scratch3Mv2Blocks {
             setTimeout(resolve, moveTime));
     }
 
+    grabberArmMove(keypoints, name=null, enable=true){
+        // keypoints should be array of [angle, time]
+        // angle in degrees, time in ms
+        if (!name){
+            name = this.addonNameByDTID(MV2_DTID_GRABSERVO);
+            if (!name) return false;
+        }
+        const numKeypoints = keypoints.length;
+        if (!numKeypoints) return false;
+        // servo opcode 00 is move, overwriting current movequeue. number of keypoints is given in second byte
+        var cmdStr = "00" + this.hexstr(numKeypoints, 2);
+        for (i in keypoints){
+            // servo expects 0.1 degree resolution, as an int16. So x10 and floor.
+            cmdStr += this.hexstr(parseInt(keypoints[i][0]*10), 4);
+            // movement time, in ms as uint16
+            cmdStr += this.hexstr(keypoints[i][1], 4);
+        }
+
+        if (enable){
+            // enable motor
+            mv2.send_REST(`elem/${name}/json?cmd=raw&hexWr=2001`);
+        }
+
+        // send movement command
+        mv2.send_REST(`elem/${name}/json?cmd=raw&hexWr=${cmdStr}`);
+        return true;
+    }
+
     grabberArmBasic (args, util) {
-        const addons = JSON.parse(mv2.addons).addons;
         //default time is set to 1 second
         const moveTime = 1 * 1000;
         //This block sets hand to open or closed
         const handPosition = args.HAND_POSITION;
-        const moveTimeHexCommand = this.decTo4cHexString(moveTime);
-        let handCommand = "";
 
+        var keypoints = null;
         if (handPosition == 1){ //closed
-            handCommand = "0384";
+            // close hand and hold for 30s. 90 degree angle
+            keypoints = [[90, moveTime], [90, 30000]];
         } else {                //open
-            handCommand = "0000";  
+            keypoints = [[0, moveTime]];
         }
 
-        var grabServoName = "";
-        for (var i=0; i < addons.length; i++){
-            if (addons[i].deviceTypeID == MV2_DTID_GRABSERVO){
-                grabServoName = addons[i].name;
-                break;
-            }
-        }
-
-        mv2.send_REST(`elem/${grabServoName}/json?cmd=raw&hexWr=0001${handCommand}${moveTimeHexCommand}`);
+        if (!this.grabberArmMove(keypoints)) return false;
 
         return new Promise(resolve =>
             setTimeout(resolve, moveTime));
@@ -370,24 +407,17 @@ class Scratch3Mv2Blocks {
         }
         //Open or closed
         const handPosition = args.HAND_POSITION;
-        const moveTimeHexCommand = this.decTo4cHexString(moveTime);
-        let handCommand = "";
 
-        if (handPosition == 1){ //closed
-            handCommand = "0384";
-        } else {                //open
-            handCommand = "0000";  
+        let keypoints = null;
+        if (handPosition == 1){
+            // close and and hold for 30s
+            keypoints = [[90, moveTime], [90, 30000]];
+        } else {
+            //open
+            keypoints= [[0, moveTime]];
         }
 
-        var grabServoName = "";
-        for (var i=0; i < addons.length; i++){
-            if (addons[i].deviceTypeID == MV2_DTID_GRABSERVO){
-                grabServoName = addons[i].name;
-                break;
-            }
-        }
-
-        mv2.send_REST(`elem/${grabServoName}/json?cmd=raw&hexWr=0001${handCommand}${moveTimeHexCommand}`);
+        if (!this.grabberArmMove(keypoints)) return false;
 
         return new Promise(resolve =>
             setTimeout(resolve, moveTime));
