@@ -758,9 +758,6 @@ class Scratch3Mv2Blocks {
 
     distanceSense (args, util) {
         const addons = JSON.parse(mv2.addons).addons;
-
-        mv2.send_REST(addons);
-
         let dsVal = null;
         for (var i=0; i < addons.length; i++){
             if ("DistanceSensorReading" in addons[i].vals){
