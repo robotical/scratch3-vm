@@ -72,8 +72,8 @@ class Scratch3Mv2Blocks {
             mv2_dance: this.dance,
             mv2_standStraight: this.standStraight,
             mv2_hold: this.hold,
-            mv2_grabberArmBasic: this.grabberArmBasic,
-            mv2_grabberArmTimed: this.grabberArmTimed,
+            mv2_gripperArmBasic: this.gripperArmBasic,
+            mv2_gripperArmTimed: this.gripperArmTimed,
 
 
             // sensors
@@ -199,6 +199,12 @@ class Scratch3Mv2Blocks {
 
 
     //utility functions
+    colorToLEDAddonStr(color){
+        // the LEDs are capped at about brightness level 20 on each channel, so we need to scale down the RGB values
+        const divisor = 20;
+        return this.hexstr(parseInt(color[0]/divisor), 2) + this.hexstr(parseInt(color[1]/divisor), 2) + this.hexstr(parseInt(color[2]/20), 2);
+    }
+
 
     decTo4cHexString (decimal) {
 
@@ -321,10 +327,10 @@ class Scratch3Mv2Blocks {
     discoChangeBlockColour (args, util) {
         const addons = JSON.parse(mv2.addons).addons;
         const resolveTime = 200;
-        const colourChoice = args.COLOUR;
+        const color = Cast.toRgbColorList(args.COLOR);
         const boardChoice = args.BOARDTYPE;
 
-        let colour = this.getColourHexString(colourChoice);
+        const colorStr = this.colorToLEDAddonStr(color);
         let filterBoardType = this.getDiscoBoardType(boardChoice);
 
         // select all LED addons found that match the board type
@@ -339,7 +345,7 @@ class Scratch3Mv2Blocks {
         let numberOfLEDAddons = addressList.length;
         for(var i=0; i < numberOfLEDAddons; i++){
             let ledDeviceName = addressList.pop();
-            mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=02${colour}`);
+            mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=02${colorStr}`);
         }
         return new Promise(resolve =>
             setTimeout(resolve, resolveTime));
@@ -348,12 +354,12 @@ class Scratch3Mv2Blocks {
     discoChangeRegionColour (args, util) {
         const addons = JSON.parse(mv2.addons).addons;
         const resolveTime = 200;
-        const colourChoice = args.COLOUR;
+        const color = Cast.toRgbColorList(args.COLOR);
         const boardChoice = args.BOARDTYPE;
         const regionChoice = args.REGION;
-        let colour = this.getColourHexString(colourChoice);
-        let filterBoardType = this.getDiscoBoardType(boardChoice);
 
+        let filterBoardType = this.getDiscoBoardType(boardChoice);
+        const colorStr = this.colorToLEDAddonStr(color);
         // select all LED addons found that match the board type
         let addressList = [];
 
@@ -367,7 +373,7 @@ class Scratch3Mv2Blocks {
 
         for(var i=0; i < numberOfLEDAddons; i++){
             let ledDeviceName = addressList.pop();
-            mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=040${regionChoice}${colour}`);
+            mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=040${regionChoice}${colorStr}`);
         }
         return new Promise(resolve =>
             setTimeout(resolve, resolveTime));
@@ -561,7 +567,7 @@ class Scratch3Mv2Blocks {
             setTimeout(resolve, moveTime));
     }
 
-    grabberArmMove(keypoints, name=null, enable=true){
+    gripperArmMove(keypoints, name=null, enable=true){
         // keypoints should be array of [angle, time]
         // angle in degrees, time in ms
         if (!name){
@@ -589,7 +595,7 @@ class Scratch3Mv2Blocks {
         return true;
     }
 
-    grabberArmBasic (args, util) {
+    gripperArmBasic (args, util) {
         //default time is set to 1 second
         const moveTime = 1 * 1000;
         //This block sets hand to open or closed
@@ -603,14 +609,14 @@ class Scratch3Mv2Blocks {
             keypoints = [[0, moveTime]];
         }
 
-        if (!this.grabberArmMove(keypoints)) return false;
+        if (!this.gripperArmMove(keypoints)) return false;
 
         return new Promise(resolve =>
             setTimeout(resolve, moveTime));
 
     }
 
-    grabberArmTimed (args, util) {
+    gripperArmTimed (args, util) {
         const addons = JSON.parse(mv2.addons).addons;
         var moveTime = parseFloat(args.MOVETIME) * 1000;
         //set upper threshold 65.5s as ffff is 65535
@@ -629,7 +635,7 @@ class Scratch3Mv2Blocks {
             keypoints= [[0, moveTime]];
         }
 
-        if (!this.grabberArmMove(keypoints)) return false;
+        if (!this.gripperArmMove(keypoints)) return false;
 
         return new Promise(resolve =>
             setTimeout(resolve, moveTime));
