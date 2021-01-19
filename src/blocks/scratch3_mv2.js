@@ -72,8 +72,8 @@ class Scratch3Mv2Blocks {
             mv2_dance: this.dance,
             mv2_standStraight: this.standStraight,
             mv2_hold: this.hold,
-            mv2_grabberArmBasic: this.grabberArmBasic,
-            mv2_grabberArmTimed: this.grabberArmTimed,
+            mv2_gripperArmBasic: this.gripperArmBasic,
+            mv2_gripperArmTimed: this.gripperArmTimed,
 
 
             // sensors
@@ -561,7 +561,7 @@ class Scratch3Mv2Blocks {
             setTimeout(resolve, moveTime));
     }
 
-    grabberArmMove(keypoints, name=null, enable=true){
+    gripperArmMove(keypoints, name=null, enable=true){
         // keypoints should be array of [angle, time]
         // angle in degrees, time in ms
         if (!name){
@@ -589,7 +589,7 @@ class Scratch3Mv2Blocks {
         return true;
     }
 
-    grabberArmBasic (args, util) {
+    gripperArmBasic (args, util) {
         //default time is set to 1 second
         const moveTime = 1 * 1000;
         //This block sets hand to open or closed
@@ -603,14 +603,14 @@ class Scratch3Mv2Blocks {
             keypoints = [[0, moveTime]];
         }
 
-        if (!this.grabberArmMove(keypoints)) return false;
+        if (!this.gripperArmMove(keypoints)) return false;
 
         return new Promise(resolve =>
             setTimeout(resolve, moveTime));
 
     }
 
-    grabberArmTimed (args, util) {
+    gripperArmTimed (args, util) {
         const addons = JSON.parse(mv2.addons).addons;
         var moveTime = parseFloat(args.MOVETIME) * 1000;
         //set upper threshold 65.5s as ffff is 65535
@@ -629,7 +629,7 @@ class Scratch3Mv2Blocks {
             keypoints= [[0, moveTime]];
         }
 
-        if (!this.grabberArmMove(keypoints)) return false;
+        if (!this.gripperArmMove(keypoints)) return false;
 
         return new Promise(resolve =>
             setTimeout(resolve, moveTime));
