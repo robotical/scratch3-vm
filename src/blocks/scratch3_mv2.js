@@ -4,12 +4,15 @@ const Timer = require('../util/timer');
 const Marty2 = require('../util/mv2-rn');
 
 // device type IDs for Robotical Standard Add-ons
-const MV2_DTID_DISTANCE  = 0x83;
-const MV2_DTID_LIGHT     = 0x84;
-const MV2_DTID_COLOUR    = 0x85;
-const MV2_DTID_IRFOOT    = 0x86;
-const MV2_DTID_NOISE     = 0x8A;
-const MV2_DTID_GRABSERVO = 0x8B;
+const MV2_DTID_DISTANCE     = 0x83;
+const MV2_DTID_LIGHT        = 0x84;
+const MV2_DTID_COLOUR       = 0x85;
+const MV2_DTID_IRFOOT       = 0x86;
+const MV2_DTID_LEDFOOT      = 0x87;
+const MV2_DTID_LEDARM       = 0x88;
+const MV2_DTID_LEDEYE       = 0x89;
+const MV2_DTID_NOISE        = 0x8A;
+const MV2_DTID_GRIPSERVO    = 0x8B;
 
 /**
  * Questions:
@@ -48,6 +51,9 @@ class Scratch3Mv2Blocks {
             // motion commands
 
             mv2_getReady: this.getReady,
+            mv2_discoChangeBlockColour: this.discoChangeBlockColour,
+            mv2_discoChangeBlockPattern: this.discoChangeBlockPattern,
+            mv2_discoChangeRegionColour: this.discoChangeRegionColour,
             mv2_walk_fw: this.walk_fw,
             mv2_walk_bw: this.walk_bw,
             mv2_walk: this.walk,
@@ -114,6 +120,84 @@ class Scratch3Mv2Blocks {
         };
     }
 
+    // DISCO Utils
+
+    getColourHexString(colourChoiceStr){
+        let colour;
+        let colourChoice = parseInt(colourChoiceStr);
+
+        switch (colourChoice) {
+        case 0:
+            //RED
+            colour = 'ff0000';
+            break;
+        case 1:
+            //GREEN
+            colour = '00ff00';
+            break;
+        case 2:
+            //BLUE
+            colour = '0000ff';
+            break;
+        case 3:
+            //PINK
+            colour = 'ff00d9';
+            break;
+        case 4:
+            //YELLOW
+            colour = 'fcec00';
+            break;
+        case 5:
+            //WHITE
+            colour = 'ffffff';
+            break;
+        case 6:
+            //OFF
+            colour = '000000';
+            break;
+            
+        default:
+            //set default to mode 01 (OFF)
+            colour = '000000';
+            break;
+        }
+
+        return colour;
+    }
+
+    getDiscoBoardType(boardChoiceStr){
+        let boardDeviceType;
+        let boardChoice = parseInt(boardChoiceStr);
+
+        switch (boardChoice) {
+            case 0:
+                // EYE
+                boardDeviceType = MV2_DTID_LEDEYE;
+                break;
+            case 1:
+                // ARM
+                boardDeviceType = MV2_DTID_LEDARM;
+                break;
+            case 2:
+                // FOOT
+                boardDeviceType = MV2_DTID_LEDFOOT;
+                break;     
+            case 3:
+                // ALL
+                boardDeviceType = 'all';
+                //console.log("case 3: " + boardDeviceType);
+                break;
+            default:
+                boardDeviceType = 0x00;
+                break;
+        }
+
+        console.log("returning: " + boardDeviceType);
+
+        return boardDeviceType;
+    }
+
+
     //utility functions
 
     decTo4cHexString (decimal) {
@@ -159,6 +243,134 @@ class Scratch3Mv2Blocks {
         console.log('Ready, set, go!');
         mv2.send_REST(`traj/getReady/?moveTime=${moveTime}`);
         return new Promise(resolve => setTimeout(resolve, moveTime));
+    }
+
+    getAllDiscoBoards(addons){
+        var addressList = [];
+
+        for (var i=0; i < addons.length; i++){
+
+            if (   addons[i].deviceTypeID == MV2_DTID_LEDEYE
+                || addons[i].deviceTypeID == MV2_DTID_LEDARM
+                || addons[i].deviceTypeID == MV2_DTID_LEDFOOT){
+                
+                addressList.push(addons[i].name);
+            }
+        }
+        return addressList;
+    }
+
+    getFilteredDiscoBoards(addons, filterBoardType){
+        var addressList = [];
+
+        for (var i=0; i < addons.length; i++){
+            if (addons[i].deviceTypeID == filterBoardType){
+                addressList.push(addons[i].name);
+            }
+        }
+
+        return addressList;
+    }
+
+
+    discoChangeBlockPattern (args, util) {
+        const addons = JSON.parse(mv2.addons).addons;
+        //so if it's set in a forever loop give 0.2s break between each update 
+        const resolveTime = 200;
+        const boardChoice = args.BOARDTYPE;
+        let filterBoardType = this.getDiscoBoardType(boardChoice);
+        const patternChoice = args.PATTERN;
+        let patternProgram = '10';
+
+        if(patternChoice == '0'){
+            presetProgram = '10';
+
+        } else if(patternChoice == '1'){
+            patternProgram = '11';
+
+        } else if(patternChoice == '2'){
+            patternProgram = '01';
+
+        }  else {
+            //default to off
+            patternProgram = '01';
+        }
+
+        // select all LED addons found
+        let addressList = [];
+
+        if( filterBoardType == 'all') {
+            addressList = this.getAllDiscoBoards(addons);
+        } else {
+            addressList = this.getFilteredDiscoBoards(addons, filterBoardType)
+        }
+
+        let numberOfLEDAddons = addressList.length;
+
+        for(var i=0; i < numberOfLEDAddons; i++){
+            let ledDeviceName = addressList.pop();
+            // console.log(`elem/${ledDeviceName}/json?cmd=raw&hexWr=${patternProgram}`);
+            mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=${patternProgram}`);
+            // console.log(addressList.length);
+        }
+        return new Promise(resolve =>
+            setTimeout(resolve, resolveTime));
+    }
+
+
+    discoChangeBlockColour (args, util) {
+        const addons = JSON.parse(mv2.addons).addons;
+        const resolveTime = 200;
+        const colourChoice = args.COLOUR;
+        const boardChoice = args.BOARDTYPE;
+
+        let colour = this.getColourHexString(colourChoice);
+        let filterBoardType = this.getDiscoBoardType(boardChoice);
+
+        // select all LED addons found that match the board type
+        let addressList = [];
+
+        if( filterBoardType == 'all') {
+            addressList = this.getAllDiscoBoards(addons);
+        } else {
+            addressList = this.getFilteredDiscoBoards(addons, filterBoardType)
+        }
+     
+        let numberOfLEDAddons = addressList.length;
+        for(var i=0; i < numberOfLEDAddons; i++){
+            let ledDeviceName = addressList.pop();
+            mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=02${colour}`);
+        }
+        return new Promise(resolve =>
+            setTimeout(resolve, resolveTime));
+    }
+
+    discoChangeRegionColour (args, util) {
+        const addons = JSON.parse(mv2.addons).addons;
+        const resolveTime = 200;
+        const colourChoice = args.COLOUR;
+        const boardChoice = args.BOARDTYPE;
+        const regionChoice = args.REGION;
+        let colour = this.getColourHexString(colourChoice);
+        let filterBoardType = this.getDiscoBoardType(boardChoice);
+
+        // select all LED addons found that match the board type
+        let addressList = [];
+
+        if( filterBoardType == 'all') {
+            addressList = this.getAllDiscoBoards(addons);
+        } else {
+            addressList = this.getFilteredDiscoBoards(addons, filterBoardType)
+        }
+     
+        let numberOfLEDAddons = addressList.length;
+
+        for(var i=0; i < numberOfLEDAddons; i++){
+            let ledDeviceName = addressList.pop();
+            mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=040${regionChoice}${colour}`);
+        }
+        return new Promise(resolve =>
+            setTimeout(resolve, resolveTime));
     }
 
     walk_fw (args, util) {
@@ -353,7 +565,7 @@ class Scratch3Mv2Blocks {
         // keypoints should be array of [angle, time]
         // angle in degrees, time in ms
         if (!name){
-            name = this.addonNameByDTID(MV2_DTID_GRABSERVO);
+            name = this.addonNameByDTID(MV2_DTID_GRIPSERVO);
             if (!name) return false;
         }
         const numKeypoints = keypoints.length;
@@ -545,6 +757,7 @@ class Scratch3Mv2Blocks {
 
     obstacleSense (args, util) {
         const addons = JSON.parse(mv2.addons).addons;
+
         // if ir sensor not found we will check for colour sensor
         let colourSensorName = "LeftColourSensorTouch";
         if (args.SENSORCHOICE.includes("Right")){ colourSensorName = "RightColourSensorTouch"; }
@@ -605,7 +818,7 @@ class Scratch3Mv2Blocks {
             sensorname = addons[selectedID].name;
         }
 
-        if (addons[selectedID].vals[args.SENSORCHOICE + "Air"]){
+        if (addons[selectedID].vals[sensorname + "Air"]){
             return "air";
         } else {
             //mv2.send_REST('return val: ' + addons[i].vals[args.SENSORCHOICE]);
