@@ -149,12 +149,12 @@ class Scratch3Mv2Blocks {
             break;
         case 6:
             //OFF
-            colour = 'off';
+            colour = '000000';
             break;
             
         default:
             //set default to mode 01 (OFF)
-            colour = 'off'
+            colour = '000000';
             break;
         }
 
@@ -167,24 +167,24 @@ class Scratch3Mv2Blocks {
 
         switch (boardChoice) {
             case 0:
-                //RED
+                // EYE
                 boardDeviceType = MV2_DTID_LEDEYE;
                 break;
             case 1:
-                //GREEN
+                // ARM
                 boardDeviceType = MV2_DTID_LEDARM;
                 break;
             case 2:
-                //BLUE
+                // FOOT
                 boardDeviceType = MV2_DTID_LEDFOOT;
                 break;     
             case 3:
+                // ALL
                 boardDeviceType = 'all';
-                console.log("case 3: " + boardDeviceType);
+                //console.log("case 3: " + boardDeviceType);
                 break;
             default:
-                //set default to mode 10
-                boardDeviceType = 0x00
+                boardDeviceType = 0x00;
                 break;
         }
 
