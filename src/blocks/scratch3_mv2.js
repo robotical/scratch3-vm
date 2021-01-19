@@ -199,6 +199,12 @@ class Scratch3Mv2Blocks {
 
 
     //utility functions
+    colorToLEDAddonStr(color){
+        // the LEDs are capped at about brightness level 20 on each channel, so we need to scale down the RGB values
+        const divisor = 20;
+        return this.hexstr(parseInt(color[0]/divisor), 2) + this.hexstr(parseInt(color[1]/divisor), 2) + this.hexstr(parseInt(color[2]/20), 2);
+    }
+
 
     decTo4cHexString (decimal) {
 
@@ -321,10 +327,10 @@ class Scratch3Mv2Blocks {
     discoChangeBlockColour (args, util) {
         const addons = JSON.parse(mv2.addons).addons;
         const resolveTime = 200;
-        const colourChoice = args.COLOUR;
+        const color = Cast.toRgbColorList(args.COLOR);
         const boardChoice = args.BOARDTYPE;
 
-        let colour = this.getColourHexString(colourChoice);
+        const colorStr = this.colorToLEDAddonStr(color);
         let filterBoardType = this.getDiscoBoardType(boardChoice);
 
         // select all LED addons found that match the board type
@@ -339,7 +345,7 @@ class Scratch3Mv2Blocks {
         let numberOfLEDAddons = addressList.length;
         for(var i=0; i < numberOfLEDAddons; i++){
             let ledDeviceName = addressList.pop();
-            mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=02${colour}`);
+            mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=02${colorStr}`);
         }
         return new Promise(resolve =>
             setTimeout(resolve, resolveTime));
@@ -348,12 +354,12 @@ class Scratch3Mv2Blocks {
     discoChangeRegionColour (args, util) {
         const addons = JSON.parse(mv2.addons).addons;
         const resolveTime = 200;
-        const colourChoice = args.COLOUR;
+        const color = Cast.toRgbColorList(args.COLOR);
         const boardChoice = args.BOARDTYPE;
         const regionChoice = args.REGION;
-        let colour = this.getColourHexString(colourChoice);
-        let filterBoardType = this.getDiscoBoardType(boardChoice);
 
+        let filterBoardType = this.getDiscoBoardType(boardChoice);
+        const colorStr = this.colorToLEDAddonStr(color);
         // select all LED addons found that match the board type
         let addressList = [];
 
@@ -367,7 +373,7 @@ class Scratch3Mv2Blocks {
 
         for(var i=0; i < numberOfLEDAddons; i++){
             let ledDeviceName = addressList.pop();
-            mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=040${regionChoice}${colour}`);
+            mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=040${regionChoice}${colorStr}`);
         }
         return new Promise(resolve =>
             setTimeout(resolve, resolveTime));
