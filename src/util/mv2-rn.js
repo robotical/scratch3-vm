@@ -93,7 +93,7 @@ class Marty2 extends EventDispatcher {
         if (isConnected !== this.isConnected) {
             this.isConnected = isConnected;
             this.dispatchEvent({type: 'onIsConnectedChange', isConnected: this.isConnected});
-            console.log("Marty is connected");
+            console.log("Marty is connected.");
         }
     }
 
@@ -267,10 +267,14 @@ class Marty2 extends EventDispatcher {
     }
 
     onConnEvent(eventCode, args) {
-        // console.log(`conn event ${eventCode}`);
+        console.log(`conn event ${eventCode}`);
         if (eventCode === RICEvent.CONNECTED_RIC) {
             this.setIsConnected(true);
             this.setRSSI(-50);
+            (async () => {
+                await this._martyConnector.getHWElemList();
+            })();
+
         } else if (eventCode === RICEvent.DISCONNECTED_RIC) {
             this.setIsConnected(false);
         }

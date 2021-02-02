@@ -192,7 +192,7 @@ class Scratch3Mv2Blocks {
                 break;
         }
 
-        console.log("returning: " + boardDeviceType);
+        // console.log("returning: " + boardDeviceType);
 
         return boardDeviceType;
     }
@@ -326,6 +326,7 @@ class Scratch3Mv2Blocks {
 
     discoChangeBlockColour (args, util) {
         const addons = JSON.parse(mv2.addons).addons;
+        console.log(addons);
         const resolveTime = 200;
         const color = Cast.toRgbColorList(args.COLOR);
         const boardChoice = args.BOARDTYPE;
@@ -345,6 +346,7 @@ class Scratch3Mv2Blocks {
         let numberOfLEDAddons = addressList.length;
         for(var i=0; i < numberOfLEDAddons; i++){
             let ledDeviceName = addressList.pop();
+            console.log(`elem/${ledDeviceName}/json?cmd=raw&hexWr=02${colorStr}`);
             mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=02${colorStr}`);
         }
         return new Promise(resolve =>
