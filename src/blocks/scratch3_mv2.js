@@ -606,11 +606,69 @@ class Scratch3Mv2Blocks {
     // SOUND
 
     playSound (args, util) {
-        const filename = args.SOUND;
-        console.log(`filerun/spiffs/${filename}`);
-        mv2.send_REST(`filerun/spiffs/${filename}`);
-        return new Promise(resolve =>
-            setTimeout(resolve));
+        // const filename = args.SOUND;
+        // console.log(`filerun/spiffs/${filename}`);
+        // mv2.send_REST(`filerun/spiffs/${filename}`);
+        // return new Promise(resolve =>
+        //     setTimeout(resolve));
+        const index = this._getSoundIndex(args.SOUND_MENU, util);
+        if (index >= 0) {
+            const {target} = util;
+            const {sprite} = target;
+            const {soundId} = sprite.sounds[index];
+            if (sprite.soundBank) {
+                console.log(`SOUND ${soundId} len ${sprite.soundBank.soundPlayers[soundId].buffer.length}`);
+                rawSoundData = this._convertSoundToRICRAW(sprite.soundBank.soundPlayers[soundId]);
+                console.log(`CONVERTED len ${rawSoundData.length}`);
+                mv2.playRawSound(rawSoundData);
+            }
+        }        
+    }
+
+    _convertSoundToRICRAW(audioBuffer) {
+        const sampleRatio = audioBuffer.buffer.sampleRate / 11025;
+        const finalLen = Math.floor(audioBuffer.buffer.length / sampleRatio);
+        const outSoundData = new Int8Array(finalLen);
+        const inSoundData = audioBuffer.buffer.getChannelData(0);
+        for (let i = 0; i < finalLen; i++) {
+            // Nominal range of AudioBuffer data is -1.0 to +1.0 (each sample is a 32 bit float)
+            outSoundData[i] = inSoundData[Math.floor(i*sampleRatio)] * 127;
+        }
+        return outSoundData;
+    }
+
+    _getSoundIndex (soundName, util) {
+        // if the sprite has no sounds, return -1
+        const len = util.target.sprite.sounds.length;
+        if (len === 0) {
+            return -1;
+        }
+
+        // look up by name first
+        const index = this.getSoundIndexByName(soundName, util);
+        if (index !== -1) {
+            return index;
+        }
+
+        // then try using the sound name as a 1-indexed index
+        const oneIndexedIndex = parseInt(soundName, 10);
+        if (!isNaN(oneIndexedIndex)) {
+            return MathUtil.wrapClamp(oneIndexedIndex - 1, 0, len - 1);
+        }
+
+        // could not be found as a name or converted to index, return -1
+        return -1;
+    }    
+
+    getSoundIndexByName (soundName, util) {
+        const sounds = util.target.sprite.sounds;
+        for (let i = 0; i < sounds.length; i++) {
+            if (sounds[i].name === soundName) {
+                return i;
+            }
+        }
+        // if there is no sound by that name, return -1
+        return -1;
     }
 
     // MISC/PROPOSED/DEPRECATED

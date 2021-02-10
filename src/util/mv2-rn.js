@@ -5,6 +5,7 @@
 
 const marty2js = require('marty2js');
 const { RICEvent } = require('marty2js/dist/RICTypes');
+const Base64Util = require('../util/base64-util');
 
 class EventDispatcher {
     constructor () {
@@ -125,6 +126,25 @@ class Marty2 extends EventDispatcher {
             // eslint-disable-next-line no-console
             console.log(`Error sending to react native: ${err}`);
         }
+    }
+
+    /**
+     * Play a raw sound
+     * @param {Int8Array} rawSoundData
+     */
+    playRawSound(rawSoundData) {
+        // Convert to base64
+        const jsonCmd = '{"command":"playRawSound","soundData":"' + Base64Util.uint8ArrayToBase64(rawSoundData) + '"}'
+        try {
+            if (mv2.isInApp) {
+                window.ReactNativeWebView.postMessage(jsonCmd); // this call triggers onMessage in the app
+            } else {
+                this._martyConnector.runCommand(jsonCmd);
+            }
+        } catch (err) {
+            // eslint-disable-next-line no-console
+            console.log(`Error sending to react native: ${err}`);
+        } 
     }
 
     /**
