@@ -142,6 +142,8 @@ class Marty2 extends EventDispatcher {
                 contents
             });
         }
+
+        console.log("This is not webview")
         // not running in react native, fallback to web storage
         window.localStorage.setItem(`scratch_${fileName}`, contents);
         return Promise.resolve();
