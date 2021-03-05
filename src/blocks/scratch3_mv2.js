@@ -93,6 +93,9 @@ class Scratch3Mv2Blocks {
             mv2_lightsense: this.lightSense,
             mv2_noisesense: this.noiseSense,
 
+            mv2_addonlist: this.addonlist,
+            mv2_addonlist_menu: this.addonlist_menu,
+
             // sound commands
 
             mv2_playSound: this.playSound,
@@ -936,6 +939,14 @@ class Scratch3Mv2Blocks {
         }
         if (sensorVal !== null) return sensorVal;
         return null;
+    }
+
+    addonlist (args, util){
+        return true;
+    }
+
+    addonlist_menu (args) {
+        return args.ADDONLIST;
     }
 
     // SOUND
