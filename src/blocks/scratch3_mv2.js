@@ -761,12 +761,12 @@ class Scratch3Mv2Blocks {
         return mv2.battRemainCapacityPercent;
     }
 
+    // TODO: redo the obsctacle sense (and other sensor blocks) to use names of actual connected addons from dynamically populated list
     obstacleSense (args, util) {
         const addons = JSON.parse(mv2.addons).addons;
 
-        // if ir sensor not found we will check for colour sensor
-        let colourSensorName = "LeftColourSensorTouch";
-        if (args.SENSORCHOICE.includes("Right")){ colourSensorName = "RightColourSensorTouch"; }
+        // if ir sensor not found we will check for colour sensor with the same side in its name
+        const side = args.SENSORCHOICE.includes("Right") ? "Right" : "Left";
 
         let colourSensorVal = null;
         for (var i=0; i < addons.length; i++){
@@ -774,9 +774,10 @@ class Scratch3Mv2Blocks {
                 //mv2.send_REST('return val: ' + addons[i].vals[args.SENSORCHOICE]);
                 return addons[i].vals[args.SENSORCHOICE];
             }
-            if (colourSensorName in addons[i].vals){
-                colourSensorVal = addons[i].vals[colourSensorName];
+            if (addons[i].deviceTypeID == MV2_DTID_COLOUR && addons[i].name.includes(side)){
+                colourSensorVal = addons[i].vals[addons[i].name + 'Touch']
             }
+
         }
         if (colourSensorVal !== null) return colourSensorVal;
         return false;
@@ -784,9 +785,8 @@ class Scratch3Mv2Blocks {
 
     groundSense (args, util) {
         const addons = JSON.parse(mv2.addons).addons;
-        // if ir sensor not found we will check for colour sensor
-        let colourSensorName = "LeftColourSensorAir";
-        if (args.SENSORCHOICE.includes("Right")){ colourSensorName = "RightColourSensorAir"; }
+        // if ir sensor not found we will check for colour sensor with the same side in its name
+        const side = args.SENSORCHOICE.includes("Right") ? "Right" : "Left";
 
         let colourSensorVal = null;
         for (var i=0; i < addons.length; i++){
@@ -795,8 +795,8 @@ class Scratch3Mv2Blocks {
                 // sensor tells you if if the foot is in the air
                 return !addons[i].vals[args.SENSORCHOICE];
             }
-            if (colourSensorName in addons[i].vals){
-                colourSensorVal = !addons[i].vals[colourSensorName];
+            if (addons[i].deviceTypeID == MV2_DTID_COLOUR && addons[i].name.includes(side)){
+                colourSensorVal = !addons[i].vals[addons[i].name + 'Air']
             }
         }
         if (colourSensorVal !== null) return colourSensorVal;
