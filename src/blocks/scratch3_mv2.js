@@ -432,7 +432,7 @@ class Scratch3Mv2Blocks {
     }
 
     wiggle (args, util) {
-        const moveTime = 5000;
+        const moveTime = 4000;
         console.log(`traj/wiggle/1/?moveTime=${moveTime}`);
         mv2.send_REST(`traj/wiggle/1/?moveTime=${moveTime}`);
         return new Promise(resolve =>
