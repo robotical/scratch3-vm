@@ -69,6 +69,7 @@ class Marty2 extends EventDispatcher {
         this.isInApp = false;
         this._martyConnector = new marty2js.Marty();
         this._martyConnector.setEventListener(this);
+
     }
 
     isWorkingInApp() {
@@ -280,6 +281,21 @@ class Marty2 extends EventDispatcher {
         }
     }
 
+    getHWElemList(){
+        try {
+            return this.addons;
+        } catch (error) {
+            console.log('eventConnect - failed to get HWElems ' + error);
+            return null;
+        }
+        
+    }
+
+    convertHWElemType(whoAmITypeCode){
+        return this._martyConnector.convertHWElemType(whoAmITypeCode);
+    }
+
+
     onRxSmartServo(smartServos) {
         // console.log(`servo`, smartServos);
         this.servos = JSON.stringify(smartServos);
@@ -297,7 +313,8 @@ class Marty2 extends EventDispatcher {
 
     onRxAddOnPub(addOnInfo) {
         this.addons = JSON.stringify(addOnInfo);
-        // console.log(`addOn`);
+        // console.log('mv2-rn this.addons');
+        // console.log(this.addons);
     }
 }
 
