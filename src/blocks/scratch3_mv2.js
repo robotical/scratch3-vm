@@ -315,9 +315,7 @@ class Scratch3Mv2Blocks {
 
         for(var i=0; i < numberOfLEDAddons; i++){
             let ledDeviceName = addressList.pop();
-            // console.log(`elem/${ledDeviceName}/json?cmd=raw&hexWr=${patternProgram}`);
             mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=${patternProgram}`);
-            // console.log(addressList.length);
         }
         return new Promise(resolve =>
             setTimeout(resolve, resolveTime));
@@ -346,7 +344,6 @@ class Scratch3Mv2Blocks {
         let numberOfLEDAddons = addressList.length;
         for(var i=0; i < numberOfLEDAddons; i++){
             let ledDeviceName = addressList.pop();
-            console.log(`elem/${ledDeviceName}/json?cmd=raw&hexWr=02${colorStr}`);
             mv2.send_REST(`elem/${ledDeviceName}/json?cmd=raw&hexWr=02${colorStr}`);
         }
         return new Promise(resolve =>
