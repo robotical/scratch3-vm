@@ -545,9 +545,7 @@ class Scratch3Mv2Blocks {
 
     dance (args, util) {
         console.log('Let\'s dance!');
-        
-        let moveTime = 3000;
-
+        const moveTime = 3000;
         let marty_cmd = `traj/dance/1?moveTime=${moveTime}`;
         mv2.send_REST(marty_cmd);
         console.log(marty_cmd);
